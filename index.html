@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico RTH: O Homem Provedor</title>
+
+<div id="auth-section" class="card" style="margin-bottom: 30px; border: 2px solid var(--secondary-color);">
+    <h2 style="margin-bottom: 15px;">Identificação do Participante</h2>
+    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">Faça login para podermos salvar e acompanhar seu diagnóstico.</p>
+    
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+        <button type="button" onclick="loginGoogle()" class="btn-submit" style="background:#db4437; flex:1; padding:10px;">Google</button>
+        <button type="button" onclick="toggleAuthForm('email-form')" class="btn-submit" style="background:#4B5563; flex:1; padding:10px;">E-mail e Senha</button>
+        <button type="button" onclick="toggleAuthForm('phone-form')" class="btn-submit" style="background:#10B981; flex:1; padding:10px;">Celular (SMS)</button>
+    </div>
+
+    <div id="email-form" style="display:none; background:#f9fafb; padding:15px; border-radius:6px; border: 1px solid var(--border);">
+        <input type="email" id="emailInput" placeholder="Seu E-mail" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+        <input type="password" id="passwordInput" placeholder="Sua Senha (mínimo 6 caracteres)" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="loginEmail()" class="btn-submit" style="flex:1; padding:10px; font-size:1em;">Entrar</button>
+            <button type="button" onclick="registerEmail()" class="btn-submit" style="background:var(--primary-color); flex:1; padding:10px; font-size:1em;">Criar Nova Conta</button>
+        </div>
+    </div>
+
+    <div id="phone-form" style="display:none; background:#f9fafb; padding:15px; border-radius:6px; border: 1px solid var(--border);">
+        <p style="font-size: 0.85em; color: var(--text-muted); margin-top:0;">Digite no formato internacional: +55 (DDD) Número</p>
+        <input type="tel" id="phoneInput" placeholder="+5511999999999" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+        <div id="recaptcha-container" style="margin-bottom:10px;"></div>
+        <button type="button" id="btnSendSms" onclick="sendSMS()" class="btn-submit" style="width:100%; padding:10px; font-size:1em;">Enviar Código por SMS</button>
+
+        <div id="otp-section" style="display:none; margin-top:15px; border-top: 1px solid #ddd; padding-top:15px;">
+            <input type="text" id="otpInput" placeholder="Digite o código de 6 dígitos" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
+            <button type="button" onclick="verifyOTP()" class="btn-submit" style="width:100%; padding:10px; font-size:1em; background:var(--primary-color);">Verificar Código</button>
+        </div>
+    </div>
+
+    <div id="user-info" style="display:none; margin-top:15px; color: var(--success); font-weight: bold; text-align:center;"></div>
+</div>
+
     <style>
         :root {
             --primary-color: #1E3A8A; /* Azul escuro, transmite segurança e seriedade */
@@ -334,64 +369,240 @@
 
 </div>
 
-<script>
-    document.getElementById('assessmentForm').addEventListener('submit', function(e) {
+<script type="module">
+    // 1. Importações do Firebase via CDN (Adicionadas as funções de Email e Phone)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+        getAuth, signInWithPopup, GoogleAuthProvider, 
+        createUserWithEmailAndPassword, signInWithEmailAndPassword,
+        RecaptchaVerifier, signInWithPhoneNumber 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // 2. Sua Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBbZCsaw9KihtVgNoYfUu2kGCmBGCaHcGs",
+        authDomain: "rth2026-bc52c.firebaseapp.com",
+        projectId: "rth2026-bc52c",
+        storageBucket: "rth2026-bc52c.firebasestorage.app",
+        messagingSenderId: "451439639853",
+        appId: "1:451439639853:web:66a9ecb595d04a9a8027a4",
+        measurementId: "G-FHKJJZSPNL"
+    };
+
+    // 3. Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const googleProvider = new GoogleAuthProvider();
+    let currentUser = null;
+    let confirmationResult = null; // Guarda o resultado do envio do SMS
+
+    // ----- FUNÇÕES DE INTERFACE (UI) -----
+    window.toggleAuthForm = (formId) => {
+        document.getElementById('email-form').style.display = 'none';
+        document.getElementById('phone-form').style.display = 'none';
+        if(formId) document.getElementById(formId).style.display = 'block';
+    };
+
+    function setUserLoggedIn(user) {
+        currentUser = user;
+        const ident = user.displayName || user.email || user.phoneNumber || "Irmão";
+        document.getElementById('email-form').style.display = 'none';
+        document.getElementById('phone-form').style.display = 'none';
+        
+        const userInfoDiv = document.getElementById('user-info');
+        userInfoDiv.innerHTML = `✅ Autenticado como: ${ident}`;
+        userInfoDiv.style.display = 'block';
+        alert(`Bem-vindo! Você está autenticado.`);
+    }
+
+    // ----- FUNÇÕES DE AUTENTICAÇÃO -----
+    
+    // Google
+    window.loginGoogle = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            setUserLoggedIn(result.user);
+        } catch (error) {
+            console.error(error);
+            alert("Erro no Google: " + error.message);
+        }
+    };
+
+    // E-mail e Senha (Login)
+    window.loginEmail = async () => {
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passwordInput').value;
+        if(!email || !password) return alert("Preencha e-mail e senha.");
+        
+        try {
+            const result = await signInWithEmailAndPassword(auth, email, password);
+            setUserLoggedIn(result.user);
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao entrar. Verifique se a senha está correta ou crie uma conta. (" + error.message + ")");
+        }
+    };
+
+    // E-mail e Senha (Criar Conta)
+    window.registerEmail = async () => {
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passwordInput').value;
+        if(!email || !password) return alert("Preencha e-mail e senha.");
+        
+        try {
+            const result = await createUserWithEmailAndPassword(auth, email, password);
+            setUserLoggedIn(result.user);
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao criar conta: " + error.message);
+        }
+    };
+
+    // Configurar o ReCAPTCHA invisível/visível para envio de SMS
+    function setupRecaptcha() {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'normal',
+                'callback': (response) => {
+                    // reCAPTCHA resolvido
+                }
+            });
+        }
+    }
+
+    // Celular (Enviar SMS)
+    window.sendSMS = async () => {
+        const phoneNumber = document.getElementById('phoneInput').value;
+        if(!phoneNumber.startsWith('+55')) {
+            return alert("Digite no formato +55 seguido do DDD e número.");
+        }
+
+        setupRecaptcha();
+        const appVerifier = window.recaptchaVerifier;
+
+        try {
+            confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+            document.getElementById('otp-section').style.display = 'block';
+            document.getElementById('btnSendSms').style.display = 'none';
+            alert("SMS enviado! Verifique seu celular.");
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao enviar SMS: " + error.message);
+            // Reset reCAPTCHA para tentar novamente
+            if(window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+        }
+    };
+
+    // Celular (Verificar Código)
+    window.verifyOTP = async () => {
+        const code = document.getElementById('otpInput').value;
+        if(!code) return alert("Digite o código recebido.");
+
+        try {
+            const result = await confirmationResult.confirm(code);
+            setUserLoggedIn(result.user);
+        } catch (error) {
+            console.error(error);
+            alert("Código incorreto ou expirado.");
+        }
+    };
+
+    // ----- LÓGICA DO FORMULÁRIO (SALVAR NO FIRESTORE) -----
+    
+    // Função auxiliar (mantida do seu código)
+    function getDiagnosticHTML(title, score, area) {
+        let percentage = (score / 20) * 100;
+        let statusClass, feedbackText;
+
+        if (score <= 10) {
+            statusClass = 'status-danger';
+            if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
+            if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
+            if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
+        } else if (score <= 16) {
+            statusClass = 'status-warning';
+            if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
+            if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
+            if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
+        } else {
+            statusClass = 'status-success';
+            if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
+            if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
+            if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
+        }
+
+        return `
+            <div class="result-area ${statusClass}">
+                <div class="result-title">${title}: ${score}/20 Pontos</div>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${percentage}%;"></div>
+                </div>
+                <p>${feedbackText}</p>
+            </div>
+        `;
+    }
+
+    document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Coletar valores
+        // Verificação obrigatória de login
+        if (!currentUser) {
+            alert("Por favor, faça login (usando Google, E-mail ou Celular) na área de Identificação antes de gerar seu diagnóstico.");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
         const formData = new FormData(e.target);
-        
-        let scoreF = 0; let scoreS = 0; let scoreE = 0;
+        let scores = { financeiro: 0, espiritual: 0, emocional: 0 };
+        let respostas = {};
 
-        for(let i=1; i<=4; i++) {
-            scoreF += parseInt(formData.get('f'+i));
-            scoreS += parseInt(formData.get('s'+i));
-            scoreE += parseInt(formData.get('e'+i));
+        for (let i = 1; i <= 4; i++) {
+            respostas['f'+i] = parseInt(formData.get('f'+i));
+            respostas['s'+i] = parseInt(formData.get('s'+i));
+            respostas['e'+i] = parseInt(formData.get('e'+i));
+
+            scores.financeiro += respostas['f'+i];
+            scores.espiritual += respostas['s'+i];
+            scores.emocional += respostas['e'+i];
         }
 
-        // Função para gerar o conteúdo do resultado
-        function getDiagnosticHTML(title, score, area) {
-            let percentage = (score / 20) * 100;
-            let statusClass, feedbackText;
-
-            if (score <= 10) {
-                statusClass = 'status-danger';
-                if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
-                if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
-                if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
-            } else if (score <= 16) {
-                statusClass = 'status-warning';
-                if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
-                if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
-                if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
-            } else {
-                statusClass = 'status-success';
-                if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
-                if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
-                if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
-            }
-
-            return `
-                <div class="result-area ${statusClass}">
-                    <div class="result-title">${title}: ${score}/20 Pontos</div>
-                    <div class="score-bar">
-                        <div class="score-fill" style="width: ${percentage}%;"></div>
-                    </div>
-                    <p>${feedbackText}</p>
-                </div>
-            `;
-        }
-
-        // Renderizar resultados
-        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scoreF, 'Finanças');
-        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scoreS, 'Espiritual');
-        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scoreE, 'Emocional');
-
-        // Mostrar div de resultados e ocultar form (opcional, aqui mantive o form)
+        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scores.financeiro, 'Finanças');
+        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scores.espiritual, 'Espiritual');
+        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scores.emocional, 'Emocional');
         document.getElementById('results').style.display = 'block';
-        
-        // Scrollar suavemente até os resultados
         document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+        const btnSubmit = document.querySelector('.btn-submit');
+        const textoOriginal = btnSubmit.innerText;
+        btnSubmit.innerText = "Salvando no banco de dados...";
+        btnSubmit.disabled = true;
+
+        try {
+            const docRef = await addDoc(collection(db, "diagnosticos"), {
+                usuarioId: currentUser.uid,
+                usuarioNome: currentUser.displayName || "N/A",
+                usuarioEmail: currentUser.email || "N/A",
+                usuarioTelefone: currentUser.phoneNumber || "N/A",
+                scores: scores,
+                respostas: respostas,
+                dataEnvio: serverTimestamp(),
+                projeto: "RTH2026 - Semana 10"
+            });
+            
+            console.log("Documento gravado no Firestore com ID: ", docRef.id);
+            alert("Seu diagnóstico foi gerado e salvo com sucesso!");
+        } catch (error) {
+            console.error("Erro ao adicionar documento: ", error);
+            alert("Erro ao salvar no banco. Verifique as regras de segurança no Firestore.");
+        } finally {
+            btnSubmit.innerText = textoOriginal;
+            btnSubmit.disabled = false;
+        }
     });
 </script>
 
