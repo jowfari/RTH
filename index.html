@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico RTH: O Homem Provedor</title>
+
+<div style="text-align:center; margin-bottom: 25px; display: flex; justify-content: center; gap: 15px;">
+    <button onclick="loginGoogle()" type="button" style="background:#db4437; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold;">Login com Google</button>
+</div>
+
     <style>
         :root {
             --primary-color: #1E3A8A; /* Azul escuro, transmite segurança e seriedade */
@@ -334,64 +339,145 @@
 
 </div>
 
-<script>
-    document.getElementById('assessmentForm').addEventListener('submit', function(e) {
+<script type="module">
+    // 1. Importações do Firebase via CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    // 2. Sua Configuração do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBbZCsaw9KihtVgNoYfUu2kGCmBGCaHcGs",
+        authDomain: "rth2026-bc52c.firebaseapp.com",
+        projectId: "rth2026-bc52c",
+        storageBucket: "rth2026-bc52c.firebasestorage.app",
+        messagingSenderId: "451439639853",
+        appId: "1:451439639853:web:66a9ecb595d04a9a8027a4",
+        measurementId: "G-FHKJJZSPNL"
+    };
+
+    // 3. Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 4. Provedores de Autenticação
+    const googleProvider = new GoogleAuthProvider();
+    const microsoftProvider = new OAuthProvider('microsoft.com');
+
+    let currentUser = null;
+
+    // 5. Função de Login
+    async function login(provider) {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            currentUser = result.user;
+            alert(`Bem-vindo, ${currentUser.displayName}! Você está autenticado.`);
+        } catch (error) {
+            console.error("Erro no login:", error);
+            alert("Falha na autenticação: " + error.message);
+        }
+    }
+
+    // Expondo as funções para o escopo global para funcionarem nos botões HTML
+    window.loginGoogle = () => login(googleProvider);
+    window.loginMicrosoft = () => login(microsoftProvider);
+
+    // 6. Função de Cálculo e Feedback Visual
+    function getDiagnosticHTML(title, score, area) {
+        let percentage = (score / 20) * 100;
+        let statusClass, feedbackText;
+
+        if (score <= 10) {
+            statusClass = 'status-danger';
+            if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
+            if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
+            if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
+        } else if (score <= 16) {
+            statusClass = 'status-warning';
+            if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
+            if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
+            if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
+        } else {
+            statusClass = 'status-success';
+            if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
+            if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
+            if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
+        }
+
+        return `
+            <div class="result-area ${statusClass}">
+                <div class="result-title">${title}: ${score}/20 Pontos</div>
+                <div class="score-bar">
+                    <div class="score-fill" style="width: ${percentage}%;"></div>
+                </div>
+                <p>${feedbackText}</p>
+            </div>
+        `;
+    }
+
+    // 7. Interceptando o Envio do Formulário
+    document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        // Coletar valores
+        // Verificação: sugere login antes de salvar
+        if (!currentUser) {
+            const desejaContinuar = confirm("Você não fez login. O diagnóstico será salvo de forma anônima. Deseja continuar?");
+            if (!desejaContinuar) return;
+        }
+
         const formData = new FormData(e.target);
-        
-        let scoreF = 0; let scoreS = 0; let scoreE = 0;
+        let scores = { financeiro: 0, espiritual: 0, emocional: 0 };
+        let respostas = {};
 
-        for(let i=1; i<=4; i++) {
-            scoreF += parseInt(formData.get('f'+i));
-            scoreS += parseInt(formData.get('s'+i));
-            scoreE += parseInt(formData.get('e'+i));
+        // Mapeamento de respostas e cálculo de scores
+        for (let i = 1; i <= 4; i++) {
+            respostas['f'+i] = parseInt(formData.get('f'+i));
+            respostas['s'+i] = parseInt(formData.get('s'+i));
+            respostas['e'+i] = parseInt(formData.get('e'+i));
+
+            scores.financeiro += respostas['f'+i];
+            scores.espiritual += respostas['s'+i];
+            scores.emocional += respostas['e'+i];
         }
 
-        // Função para gerar o conteúdo do resultado
-        function getDiagnosticHTML(title, score, area) {
-            let percentage = (score / 20) * 100;
-            let statusClass, feedbackText;
-
-            if (score <= 10) {
-                statusClass = 'status-danger';
-                if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
-                if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
-                if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
-            } else if (score <= 16) {
-                statusClass = 'status-warning';
-                if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
-                if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
-                if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
-            } else {
-                statusClass = 'status-success';
-                if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
-                if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
-                if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
-            }
-
-            return `
-                <div class="result-area ${statusClass}">
-                    <div class="result-title">${title}: ${score}/20 Pontos</div>
-                    <div class="score-bar">
-                        <div class="score-fill" style="width: ${percentage}%;"></div>
-                    </div>
-                    <p>${feedbackText}</p>
-                </div>
-            `;
-        }
-
-        // Renderizar resultados
-        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scoreF, 'Finanças');
-        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scoreS, 'Espiritual');
-        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scoreE, 'Emocional');
-
-        // Mostrar div de resultados e ocultar form (opcional, aqui mantive o form)
+        // Exibir resultados visuais na tela
+        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scores.financeiro, 'Finanças');
+        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scores.espiritual, 'Espiritual');
+        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scores.emocional, 'Emocional');
         document.getElementById('results').style.display = 'block';
-        
-        // Scrollar suavemente até os resultados
         document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+
+        // Feedback de carregamento no botão
+        const btnSubmit = document.querySelector('.btn-submit');
+        const textoOriginal = btnSubmit.innerText;
+        btnSubmit.innerText = "Salvando no banco de dados...";
+        btnSubmit.disabled = true;
+
+        // Gravação no Firestore
+        try {
+            const docRef = await addDoc(collection(db, "diagnosticos"), {
+                usuarioId: currentUser ? currentUser.uid : "anonimo",
+                usuarioNome: currentUser ? currentUser.displayName : "Anônimo",
+                usuarioEmail: currentUser ? currentUser.email : "Sem email",
+                scores: scores,
+                respostas: respostas,
+                dataEnvio: serverTimestamp(),
+                projeto: "RTH2026 - Semana 10"
+            });
+            
+            console.log("Documento gravado no Firestore com ID: ", docRef.id);
+            alert("Seu diagnóstico foi gerado e salvo com sucesso!");
+        } catch (error) {
+            console.error("Erro ao adicionar documento: ", error);
+            alert("Erro ao salvar no banco. Verifique se você ativou o Firestore em 'Modo de Teste' no console.");
+        } finally {
+            // Restaura o botão ao estado original
+            btnSubmit.innerText = textoOriginal;
+            btnSubmit.disabled = false;
+        }
     });
 </script>
 
