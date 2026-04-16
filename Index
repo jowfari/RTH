@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico RTH: O Homem Provedor</title>
+    <style>
+        :root {
+            --primary-color: #1E3A8A; /* Azul escuro, transmite segurança e seriedade */
+            --secondary-color: #3B82F6;
+            --background: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #4B5563;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1em;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .question-group {
+            margin-bottom: 25px;
+        }
+
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .options {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .options label {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .options input[type="radio"] {
+            cursor: pointer;
+            transform: scale(1.2);
+        }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #results {
+            display: none;
+        }
+
+        .result-area {
+            margin-bottom: 25px;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 5px solid;
+        }
+
+        .result-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .score-bar {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            transition: width 1s ease-in-out;
+        }
+
+        .status-danger { border-color: var(--danger); background-color: #FEF2F2; }
+        .status-danger .score-fill { background-color: var(--danger); }
+        .status-danger .result-title { color: var(--danger); }
+
+        .status-warning { border-color: var(--warning); background-color: #FFFBEB; }
+        .status-warning .score-fill { background-color: var(--warning); }
+        .status-warning .result-title { color: #D97706; }
+
+        .status-success { border-color: var(--success); background-color: #ECFDF5; }
+        .status-success .score-fill { background-color: var(--success); }
+        .status-success .result-title { color: var(--success); }
+
+        @media (max-width: 600px) {
+            .options { flex-direction: column; align-items: flex-start; }
+            .options label { flex-direction: row; text-align: left; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>A Resolução de Todo Homem</h1>
+        <p>Diagnóstico de Provisão: Financeira, Espiritual e Emocional (Semana 10)</p>
+    </header>
+
+    <form id="assessmentForm">
+        <div class="card">
+            <h2>1. Provisão Financeira & Segurança</h2>
+            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Mas, se alguém não tem cuidado dos seus, e principalmente dos da sua família, negou a fé, e é pior do que o infiel." (1 Timóteo 5:8)</em></p>
+            
+            <div class="question-group">
+                <span class="question-text">1. Possuo uma reserva de emergência capaz de sustentar o padrão de vida da minha família por pelo menos 3 a 6 meses em caso de perda de emprego ou crise.</span>
+                <div class="options">
+                    <label><input type="radio" name="f1" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="f1" value="2"> Discordo</label>
+                    <label><input type="radio" name="f1" value="3"> Neutro</label>
+                    <label><input type="radio" name="f1" value="4"> Concordo</label>
+                    <label><input type="radio" name="f1" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">2. Possuo seguro de vida e/ou patrimônio estruturado que garanta o sustento, moradia e não deixe dívidas para minha família caso eu venha a falecer ou me torne inválido.</span>
+                <div class="options">
+                    <label><input type="radio" name="f2" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="f2" value="2"> Discordo</label>
+                    <label><input type="radio" name="f2" value="3"> Neutro</label>
+                    <label><input type="radio" name="f2" value="4"> Concordo</label>
+                    <label><input type="radio" name="f2" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">3. Minha família está livre de dívidas destrutivas (cartão de crédito rotativo, cheque especial, agiotas) e temos um orçamento mensal que governamos com sabedoria.</span>
+                <div class="options">
+                    <label><input type="radio" name="f3" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="f3" value="2"> Discordo</label>
+                    <label><input type="radio" name="f3" value="3"> Neutro</label>
+                    <label><input type="radio" name="f3" value="4"> Concordo</label>
+                    <label><input type="radio" name="f3" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">4. Tenho um planejamento claro para lidar com imprevistos de saúde (um bom plano de saúde familiar ou fundo de saúde) para não comprometer a integridade da família.</span>
+                <div class="options">
+                    <label><input type="radio" name="f4" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="f4" value="2"> Discordo</label>
+                    <label><input type="radio" name="f4" value="3"> Neutro</label>
+                    <label><input type="radio" name="f4" value="4"> Concordo</label>
+                    <label><input type="radio" name="f4" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. Provisão Espiritual (Sacerdócio)</h2>
+            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Eu e a minha casa serviremos ao Senhor." (Josué 24:15)</em></p>
+            
+            <div class="question-group">
+                <span class="question-text">5. Eu lidero ativamente minha família em oração e devocionais (leitura da Bíblia) de forma regular e intencional, não deixando essa carga apenas para minha esposa.</span>
+                <div class="options">
+                    <label><input type="radio" name="s1" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="s1" value="2"> Discordo</label>
+                    <label><input type="radio" name="s1" value="3"> Neutro</label>
+                    <label><input type="radio" name="s1" value="4"> Concordo</label>
+                    <label><input type="radio" name="s1" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">6. Minhas atitudes diárias, linguajar e comportamento refletem os valores de Cristo, servindo como modelo de integridade para minha esposa e filhos.</span>
+                <div class="options">
+                    <label><input type="radio" name="s2" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="s2" value="2"> Discordo</label>
+                    <label><input type="radio" name="s2" value="3"> Neutro</label>
+                    <label><input type="radio" name="s2" value="4"> Concordo</label>
+                    <label><input type="radio" name="s2" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">7. Eu priorizo a comunhão da minha família na igreja local, sou assíduo e incentivo minha casa a servir no Reino de Deus.</span>
+                <div class="options">
+                    <label><input type="radio" name="s3" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="s3" value="2"> Discordo</label>
+                    <label><input type="radio" name="s3" value="3"> Neutro</label>
+                    <label><input type="radio" name="s3" value="4"> Concordo</label>
+                    <label><input type="radio" name="s3" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">8. Quando enfrentamos crises ou preciso tomar decisões importantes para a casa, busco primeiro a direção de Deus e dobro os joelhos com minha esposa.</span>
+                <div class="options">
+                    <label><input type="radio" name="s4" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="s4" value="2"> Discordo</label>
+                    <label><input type="radio" name="s4" value="3"> Neutro</label>
+                    <label><input type="radio" name="s4" value="4"> Concordo</label>
+                    <label><input type="radio" name="s4" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3. Provisão Emocional</h2>
+            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Maridos, amai a vossas mulheres e não vos irriteis contra elas... Pais, não irriteis a vossos filhos, para que não fiquem desanimados." (Colossenses 3:19, 21)</em></p>
+            
+            <div class="question-group">
+                <span class="question-text">9. Ofereço um ambiente seguro em casa, onde minha esposa e filhos sentem que podem compartilhar seus medos e falhas sem medo da minha ira, explosões ou julgamentos severos.</span>
+                <div class="options">
+                    <label><input type="radio" name="e1" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="e1" value="2"> Discordo</label>
+                    <label><input type="radio" name="e1" value="3"> Neutro</label>
+                    <label><input type="radio" name="e1" value="4"> Concordo</label>
+                    <label><input type="radio" name="e1" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">10. Dedico tempo de qualidade intencional e exclusivo para minha esposa e filhos, estando presente de corpo e alma (sem distrações como celular ou TV).</span>
+                <div class="options">
+                    <label><input type="radio" name="e2" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="e2" value="2"> Discordo</label>
+                    <label><input type="radio" name="e2" value="3"> Neutro</label>
+                    <label><input type="radio" name="e2" value="4"> Concordo</label>
+                    <label><input type="radio" name="e2" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">11. Consigo gerenciar o estresse e as pressões do trabalho de forma madura, deixando os problemas do lado de fora e não descontando minhas frustrações na minha família.</span>
+                <div class="options">
+                    <label><input type="radio" name="e3" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="e3" value="2"> Discordo</label>
+                    <label><input type="radio" name="e3" value="3"> Neutro</label>
+                    <label><input type="radio" name="e3" value="4"> Concordo</label>
+                    <label><input type="radio" name="e3" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+
+            <div class="question-group">
+                <span class="question-text">12. Valido os sentimentos da minha esposa, oferecendo ombro amigo e empatia, em vez de apenas tentar consertar tudo logicamente ou minimizar o que ela sente.</span>
+                <div class="options">
+                    <label><input type="radio" name="e4" value="1" required> Discordo Totalmente</label>
+                    <label><input type="radio" name="e4" value="2"> Discordo</label>
+                    <label><input type="radio" name="e4" value="3"> Neutro</label>
+                    <label><input type="radio" name="e4" value="4"> Concordo</label>
+                    <label><input type="radio" name="e4" value="5"> Concordo Totalmente</label>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Gerar Meu Diagnóstico</button>
+    </form>
+
+    <div id="results" class="card" style="margin-top: 30px;">
+        <h2 style="text-align: center;">Seu Diagnóstico como Provedor</h2>
+        <p style="text-align: center; color: var(--text-muted);">Avalie suas fortalezas e onde Deus está te chamando para crescer e agir com urgência.</p>
+        
+        <div id="financialResult" class="result-area"></div>
+        <div id="spiritualResult" class="result-area"></div>
+        <div id="emotionalResult" class="result-area"></div>
+        
+        <button onclick="window.print()" class="btn-submit" style="background-color: var(--text-muted); margin-top: 20px;">Imprimir / Salvar PDF</button>
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('assessmentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        // Coletar valores
+        const formData = new FormData(e.target);
+        
+        let scoreF = 0; let scoreS = 0; let scoreE = 0;
+
+        for(let i=1; i<=4; i++) {
+            scoreF += parseInt(formData.get('f'+i));
+            scoreS += parseInt(formData.get('s'+i));
+            scoreE += parseInt(formData.get('e'+i));
+        }
+
+        // Função para gerar o conteúdo do resultado
+        function getDiagnosticHTML(title, score, area) {
+            let percentage = (score / 20) * 100;
+            let statusClass, feedbackText;
+
+            if (score <= 10) {
+                statusClass = 'status-danger';
+                if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
+                if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
+                if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
+            } else if (score <= 16) {
+                statusClass = 'status-warning';
+                if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
+                if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
+                if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
+            } else {
+                statusClass = 'status-success';
+                if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
+                if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
+                if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
+            }
+
+            return `
+                <div class="result-area ${statusClass}">
+                    <div class="result-title">${title}: ${score}/20 Pontos</div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${percentage}%;"></div>
+                    </div>
+                    <p>${feedbackText}</p>
+                </div>
+            `;
+        }
+
+        // Renderizar resultados
+        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scoreF, 'Finanças');
+        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scoreS, 'Espiritual');
+        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scoreE, 'Emocional');
+
+        // Mostrar div de resultados e ocultar form (opcional, aqui mantive o form)
+        document.getElementById('results').style.display = 'block';
+        
+        // Scrollar suavemente até os resultados
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    });
+</script>
+
+</body>
+</html>
