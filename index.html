@@ -151,7 +151,7 @@
     // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBbZCsaw9KihtVgNoYfUu2kGCmBGCaHcGs",
@@ -378,16 +378,82 @@
         return { color: '#ef4444', text: 'Estado Crítico. Sua família está desprotegida e você está falhando gravemente no seu chamado. É hora de arrepender-se da inércia, abandonar as desculpas e agir como o homem de coragem que Deus te chamou para ser.'};
     }
 
-    // --- FUNÇÕES DE AUTH DA TELA (Já configuradas) ---
+// --- FUNÇÕES DE AUTH DA TELA ---
     window.toggleAuth = (id) => { document.getElementById('email-form').style.display = 'none'; document.getElementById('phone-form').style.display = 'none'; if(id) document.getElementById(id).style.display = 'block'; };
-    window.loginGoogle = async () => { try { const r = await signInWithPopup(auth, new GoogleAuthProvider()); setUser(r.user); } catch(e) { alert(e.message); } };
-    window.loginEmail = async () => { try { const r = await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); setUser(r.user); } catch(e) { alert(e.message); } };
-    window.registerEmail = async () => { try { const r = await createUserWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); setUser(r.user); } catch(e) { alert(e.message); } };
-    window.sendSMS = async () => {
-        if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
-        try { confirmationResult = await signInWithPhoneNumber(auth, document.getElementById('phoneInput').value, window.recaptchaVerifier); document.getElementById('otp-section').style.display = 'block'; document.getElementById('btnSendSms').style.display = 'none'; } catch(e) { alert("Erro SMS: " + e.message); }
+    
+    // Função para traduzir erros comuns do Firebase
+    function traduzirErro(erroCode) {
+        switch (erroCode) {
+            case 'auth/email-already-in-use': return 'Este e-mail já está cadastrado. Por favor, clique em "Entrar" em vez de "Criar Conta".';
+            case 'auth/invalid-credential': return 'E-mail ou senha incorretos.';
+            case 'auth/weak-password': return 'A senha é muito fraca. Digite pelo menos 6 caracteres.';
+            case 'auth/invalid-email': return 'O formato do e-mail é inválido.';
+            case 'auth/unauthorized-domain': return 'Domínio não autorizado. O administrador precisa liberar esta URL no Firebase.';
+            default: return 'Ocorreu um erro: ' + erroCode;
+        }
+    }
+
+    window.loginGoogle = async () => { 
+        try { 
+            const r = await signInWithPopup(auth, new GoogleAuthProvider()); 
+            setUser(r.user); 
+        } catch(e) { 
+            alert(traduzirErro(e.code)); 
+        } 
     };
-    window.verifyOTP = async () => { try { const r = await confirmationResult.confirm(document.getElementById('otpInput').value); setUser(r.user); } catch(e) { alert("Código Inválido."); } };
+
+    window.loginEmail = async () => { 
+        try { 
+            const r = await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); 
+            setUser(r.user); 
+        } catch(e) { 
+            alert(traduzirErro(e.code)); 
+        } 
+    };
+
+    window.registerEmail = async () => { 
+        try { 
+            const r = await createUserWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); 
+            
+            // Dispara o e-mail de verificação padrão do Firebase
+            await sendEmailVerification(r.user);
+            alert("Conta criada com sucesso! Enviamos um link de verificação para o seu e-mail.");
+            
+            setUser(r.user); 
+        } catch(e) { 
+            alert(traduzirErro(e.code)); 
+        } 
+    };
+
+    window.sendSMS = async () => {
+        let phoneNumber = document.getElementById('phoneInput').value.trim();
+        
+        // Correção automática: Se o usuário esquecer o +, o sistema coloca
+        if(phoneNumber.length > 0 && !phoneNumber.startsWith('+')) {
+            phoneNumber = '+' + phoneNumber;
+        }
+
+        if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
+        
+        try { 
+            confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier); 
+            document.getElementById('otp-section').style.display = 'block'; 
+            document.getElementById('btnSendSms').style.display = 'none'; 
+        } catch(e) { 
+            alert(traduzirErro(e.code));
+            // Reseta o reCAPTCHA em caso de erro para permitir nova tentativa
+            if(window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
+        }
+    };
+
+    window.verifyOTP = async () => { 
+        try { 
+            const r = await confirmationResult.confirm(document.getElementById('otpInput').value); 
+            setUser(r.user); 
+        } catch(e) { 
+            alert("Código Inválido ou expirado. Tente novamente."); 
+        } 
+    };
     
     function setUser(user) {
         currentUser = user;
