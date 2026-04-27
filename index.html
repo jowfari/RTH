@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico RTH: O Homem Provedor</title>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // Inicialização do EmailJS
+            emailjs.init("SUA_PUBLIC_KEY_AQUI");
+        })();
+    </script>
+
     <style>
         :root {
             --primary: #1E3A8A;
@@ -23,7 +32,6 @@
         
         .card { background: var(--card); border-radius: 8px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        /* Estilos do Wizard (Paginação) */
         .step { display: none; }
         .step.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -31,7 +39,6 @@
         .progress-bar { display: flex; justify-content: space-between; margin-bottom: 20px; background: #e5e7eb; border-radius: 20px; overflow: hidden; height: 10px; }
         .progress-fill { background: var(--primary); width: 0%; transition: width 0.3s; }
 
-        /* Estilos das Perguntas */
         .question-box { margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid var(--border); }
         .scenario { background: #FFFBEB; border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; font-style: italic; font-size: 0.95em; border-radius: 0 4px 4px 0; }
         .scenario strong { color: #D97706; font-style: normal; display: block; margin-bottom: 5px; }
@@ -52,7 +59,6 @@
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
 
-        /* Resultados */
         .result-section { margin-bottom: 30px; padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
         .action-plan { background: #f8fafc; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid var(--primary); }
         .action-plan ul { margin: 0; padding-left: 20px; }
@@ -75,34 +81,23 @@
 
     <div id="auth-section" class="card" style="border: 2px solid var(--secondary);">
         <h2 style="margin-top: 0;">Identificação</h2>
-        <p style="color: var(--muted); font-size: 0.9em;">Faça login para iniciar o diagnóstico.</p>
+        <p style="color: var(--muted); font-size: 0.9em;">Faça login com e-mail ou conta Google para salvar e receber seu diagnóstico.</p>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button onclick="loginGoogle()" class="btn" style="background:#db4437; flex:1;">Google</button>
-            <button onclick="toggleAuth('email-form')" class="btn" style="background:#4B5563; flex:1;">E-mail</button>
-            <button onclick="toggleAuth('phone-form')" class="btn" style="background:#10B981; flex:1;">Celular SMS</button>
+            <button onclick="loginGoogle()" class="btn" style="background:#db4437; flex:1;">Entrar com Google</button>
+            <button onclick="toggleAuth('email-form')" class="btn" style="background:#4B5563; flex:1;">Entrar com E-mail</button>
         </div>
         
-        <div id="email-form" style="display:none; margin-top:15px;">
-            <input type="email" id="emailInput" placeholder="E-mail" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-            <input type="password" id="passwordInput" placeholder="Senha" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+        <div id="email-form" style="display:none; margin-top:20px; background: #f9fafb; padding: 15px; border-radius: 6px; border: 1px solid var(--border);">
+            <input type="email" id="emailInput" placeholder="Seu E-mail" style="width:100%; padding:12px; margin-bottom:10px; box-sizing:border-box; border: 1px solid #ccc; border-radius: 4px;">
+            <input type="password" id="passwordInput" placeholder="Sua Senha (mínimo 6 caracteres)" style="width:100%; padding:12px; margin-bottom:15px; box-sizing:border-box; border: 1px solid #ccc; border-radius: 4px;">
             <div style="display:flex; gap:10px;">
-                <button onclick="loginEmail()" class="btn" style="flex:1;">Entrar</button>
-                <button onclick="registerEmail()" class="btn btn-outline" style="flex:1;">Criar Conta</button>
+                <button onclick="loginEmail()" class="btn" style="flex:1;">Fazer Login</button>
+                <button onclick="registerEmail()" class="btn btn-outline" style="flex:1;">Criar Nova Conta</button>
             </div>
         </div>
 
-        <div id="phone-form" style="display:none; margin-top:15px;">
-            <input type="tel" id="phoneInput" placeholder="+5511999999999" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-            <div id="recaptcha-container"></div>
-            <button id="btnSendSms" onclick="sendSMS()" class="btn" style="width:100%;">Enviar SMS</button>
-            <div id="otp-section" style="display:none; margin-top:10px;">
-                <input type="text" id="otpInput" placeholder="Código de 6 dígitos" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-                <button onclick="verifyOTP()" class="btn" style="width:100%;">Verificar</button>
-            </div>
-        </div>
-
-        <div id="user-info" style="display:none; margin-top:15px; color: #10B981; font-weight: bold; text-align:center;"></div>
-        <button id="btnStart" onclick="startAssessment()" class="btn" style="width:100%; margin-top:20px; display:none; font-size:1.2em;">Iniciar Diagnóstico</button>
+        <div id="user-info" style="display:none; margin-top:20px; padding: 15px; background: #d1fae5; color: #065f46; border: 1px solid #10b981; border-radius: 6px; font-weight: bold; text-align:center;"></div>
+        <button id="btnStart" onclick="startAssessment()" class="btn" style="width:100%; margin-top:20px; display:none; font-size:1.2em; background: #10B981;">Iniciar Diagnóstico ➔</button>
     </div>
 
     <div id="assessment-container" style="display:none;">
@@ -132,7 +127,7 @@
                 <div id="questions-3"></div>
                 <div class="nav-buttons">
                     <button type="button" class="btn btn-outline" onclick="prevStep(3)">🡠 Voltar</button>
-                    <button type="submit" class="btn" style="background:#10B981;">Finalizar e Gerar Diagnóstico ✓</button>
+                    <button type="submit" id="btnFinalizar" class="btn" style="background:#10B981;">Finalizar e Gerar Diagnóstico ✓</button>
                 </div>
             </div>
 
@@ -148,10 +143,9 @@
 </div>
 
 <script type="module">
-    // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBbZCsaw9KihtVgNoYfUu2kGCmBGCaHcGs",
@@ -166,48 +160,53 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
     let currentUser = null;
-    let confirmationResult = null;
 
-    // --- LÓGICA DE DADOS DAS PERGUNTAS ---
+    // --- BANCO DE PERGUNTAS E PLANO DE AÇÃO DINÂMICO ---
     const dbQuestions = {
         bloco1: [
-            { id: 'f1', ctx: 'Você sofre um acidente leve e precisa ficar 15 dias em casa. Seu chefe percebe que a empresa funciona perfeitamente sem você e decide te demitir. Ou, seu negócio é atropelado pela concorrência porque você parou no tempo.', text: 'Encaro meu trabalho como um chamado honroso e continuo investindo no meu conhecimento profissional, sinalizando para Deus e para o mercado minha disposição em crescer e não me acomodar na preguiça?', ref: 'Provérbios 13:4' },
-            { id: 'f2', ctx: 'O telefone toca durante o jantar em família. É mais uma cobrança. Sua esposa abaixa a cabeça, envergonhada e tensa, e o clima de paz desaparece do seu lar.', text: 'Minha família vive livre do desconforto de dívidas destrutivas (banco, cartão rotativo, cheque especial, agiotas) e evito totalmente atalhos de "dinheiro fácil"?', ref: 'Provérbios 22:7' },
-            { id: 'f3', ctx: 'Você sofre um mal súbito. Sua esposa precisa pagar as contas, mas entra em desespero ao descobrir que não faz ideia de quanto entra, quanto sai, nem das dívidas da casa.', text: 'Minha esposa participa ativamente ou tem total consciência e acesso ao orçamento familiar (mensal e anual), conhecendo a exata realidade financeira da nossa casa?', ref: 'Gênesis 2:24' },
-            { id: 'f4', ctx: 'Uma crise global atinge sua área e você perde sua fonte de renda amanhã. O governo não vai ajudar. Em poucas semanas, a geladeira esvazia e o medo toma conta.', text: 'Possuo uma reserva de emergência construída capaz de sustentar o padrão de vida da minha família, sem depender de terceiros, por pelo menos 3 a 6 meses?', ref: 'Provérbios 21:20' },
-            { id: 'f5', ctx: 'De madrugada, seu filho tem uma urgência médica grave. O desespero bate porque não há de onde tirar recursos para agir.', text: 'Tenho um planejamento claro para imprevistos (um bom convênio de saúde ou fundo específico) e minha moradia possui seguro contra acidentes?', ref: '1 Timóteo 5:8' },
-            { id: 'f6', ctx: 'Um motorista embriagado cruza o sinal e destrói seu veículo. Além do bem, você fica inválido para o trabalho. A renda zera da noite para o dia.', text: 'Se possuo veículo (carro ou moto), ele está segurado? E principalmente: possuo Seguro de Vida (morte e invalidez) para que a perda da minha capacidade não afunde minha família?', ref: 'Eclesiastes 11:2' },
-            { id: 'f7', ctx: 'Você não volta para casa hoje; faleceu. Em meio ao luto, sua esposa tenta acessar o dinheiro para o funeral, mas as contas estão bloqueadas e ela não tem as senhas.', text: 'Se eu falecer hoje, minha esposa tem acesso fácil a senhas, contas bancárias, contratos e orientações claras para resolver os trâmites sem passar por humilhação?', ref: 'Provérbios 13:22' },
-            { id: 'f8', ctx: 'Os anos voaram. Você está idoso, sem força, e seus filhos estão começando a vida adulta tendo que tirar do pouco que têm para sustentar você.', text: 'Além da reserva, você investe seu dinheiro pensando no longo prazo, preparando um envelhecimento digno e construindo uma base de herança para seus filhos?', ref: '2 Coríntios 12:14' },
-            { id: 'f9', ctx: 'Você ganha bem, mas construiu um império apenas para si. Ao se encontrar com Deus, Ele pergunta: "A quem você alimentou com as sementes que Eu te dei?"', text: 'Sou fiel nos dízimos e uso parte da minha provisão para abençoar ativamente outras pessoas (viúvas, órfãos, necessitados) e investir no Reino de Deus?', ref: 'Malaquias 3:10 / Tiago 1:27' },
-            { id: 'f10', ctx: 'Você está deitado às 3 da manhã, ansioso. Trabalha feito um escravo do dinheiro, tentando resolver no próprio braço o que foge do controle.', text: 'Minha motivação é o amor (e não a ganância), e consigo dormir em paz convicto de que faço minha parte com excelência, mas quem verdadeiramente sustenta a casa é o Senhor?', ref: 'Salmos 127:2' },
-            { id: 'f11', ctx: 'Você sofre um infarto fatal aos 45 anos porque ignorou exames, comeu mal e foi sedentário. Sua família fica órfã porque você não cuidou da "máquina" que trabalha.', text: 'Tenho cuidado ativamente da minha saúde física (exames de rotina, exercícios regulares, alimentação e sono), compreendendo que não posso ser provedor se meu corpo falhar?', ref: '1 Coríntios 6:19-20' }
+            { id: 'f1', ctx: 'Seu chefe percebe que a empresa funciona perfeitamente sem você e decide te demitir. Ou, seu negócio é atropelado pela concorrência porque você parou no tempo.', text: 'Encaro meu trabalho como chamado honroso, investindo no meu conhecimento e sinalizando disposição em crescer, sem me acomodar na preguiça?', ref: 'Provérbios 13:4', actionPlan: 'Busque um curso, vídeo ou leitura na sua área nos próximos 7 dias para sair da estagnação profissional.' },
+            { id: 'f2', ctx: 'O telefone toca no jantar. É mais uma cobrança. Sua esposa abaixa a cabeça, envergonhada, e a paz desaparece do seu lar.', text: 'Minha família vive livre de dívidas destrutivas (banco, cartão rotativo, agiotas) e evito totalmente atalhos de "dinheiro fácil"?', ref: 'Provérbios 22:7', actionPlan: 'Liste todas as suas dívidas hoje e crie um plano agressivo para congelar os gastos não essenciais.' },
+            { id: 'f3', ctx: 'Você sofre um mal súbito. Sua esposa precisa pagar as contas, mas se desespera ao descobrir que não faz ideia de quanto entra e sai.', text: 'Minha esposa participa ativamente e tem acesso ao orçamento familiar, conhecendo a exata realidade financeira da nossa casa?', ref: 'Gênesis 2:24', actionPlan: 'Marque uma reunião financeira com sua esposa esta semana para abrir todas as contas e traçarem o orçamento juntos.' },
+            { id: 'f4', ctx: 'Uma crise global atinge sua área e você perde a renda. O governo não vai ajudar. A geladeira esvazia e o medo toma conta.', text: 'Possuo uma reserva de emergência construída (dinheiro de acesso rápido) capaz de sustentar minha família por pelo menos 3 a 6 meses?', ref: 'Provérbios 21:20', actionPlan: 'Corte uma despesa de lazer neste mês para iniciar (ou reforçar) o seu fundo de emergência.' },
+            { id: 'f5', ctx: 'De madrugada, uma urgência médica grave acontece. O desespero bate porque não há de onde tirar recursos.', text: 'Tenho um plano claro para imprevistos (um bom convênio de saúde ou fundo de saúde) e minha moradia possui seguro acidental?', ref: '1 Timóteo 5:8', actionPlan: 'Faça cotações de um plano de saúde ou seguro residencial para proteger sua família contra desastres imprevistos.' },
+            { id: 'f6', ctx: 'Um motorista embriagado cruza o sinal e destrói seu patrimônio.', text: 'Se possuo veículo (carro ou moto), ele está segurado contra acidentes, perda total ou roubos?', ref: 'Eclesiastes 11:2', actionPlan: 'Regularize ou faça a cotação do seguro do seu veículo (carro/moto) para não perder seu patrimônio.' },
+            { id: 'f7', ctx: 'Você sofre um acidente e fica inválido (ou vem a falecer). A renda do lar zera da noite para o dia.', text: 'Possuo Seguro de Vida (cobertura para morte e invalidez) para que a perda da minha capacidade física não afunde minha família na miséria?', ref: '1 Timóteo 5:8', actionPlan: 'Faça urgentemente uma cotação de Seguro de Vida nos próximos 5 dias para blindar sua família em caso de sua falta.' },
+            { id: 'f8', ctx: 'Você faleceu. Em meio ao luto, sua esposa tenta acessar o dinheiro para o funeral, mas está bloqueado e ela não tem suas senhas.', text: 'Minha esposa tem acesso fácil a senhas, contas bancárias, contratos e orientações claras para resolver os trâmites se eu faltar hoje?', ref: 'Provérbios 13:22', actionPlan: 'Crie uma "Pasta de Emergência" física ou digital com senhas, apólices e contas, e mostre a ela onde fica.' },
+            { id: 'f9', ctx: 'Os anos voaram. Você está idoso, sem força, e seus filhos estão começando a vida tendo que tirar do pouco deles para te sustentar.', text: 'Além da reserva, você investe seu dinheiro pensando no longo prazo, preparando seu envelhecimento e uma base de herança para seus filhos?', ref: '2 Coríntios 12:14', actionPlan: 'Inicie um pequeno investimento mensal em longo prazo (tesouro/renda fixa) pensando na sua velhice e legado.' },
+            { id: 'f10', ctx: 'Deus te deu recursos, saúde e emprego para gerar riquezas.', text: 'Reconheço que Deus é o dono de tudo e sou fiel na devolução dos meus dízimos e ofertas ao Senhor?', ref: 'Malaquias 3:10', actionPlan: 'Assuma a responsabilidade de honrar a Deus com a primícia (dízimo) da sua próxima entrada financeira.' },
+            { id: 'f11', ctx: 'Ao se encontrar com Deus, Ele pergunta: "A quem você alimentou com as sementes que Eu te dei?"', text: 'Uso parte da minha provisão para abençoar ativamente outras pessoas (viúvas, órfãos e irmãos necessitados) fora do meu círculo?', ref: 'Tiago 1:27', actionPlan: 'Identifique um irmão necessitado, viúva ou projeto social e faça uma doação prática neste mês.' },
+            { id: 'f12', ctx: 'Você deita às 3 da manhã, com ansiedade. Trabalha feito escravo, tentando resolver tudo no próprio braço.', text: 'Minha motivação é o amor (e não a ganância), e durmo em paz convicto de que faço minha parte, mas quem sustenta a casa é o Senhor?', ref: 'Salmos 127:2', actionPlan: 'Entregue suas ansiedades financeiras a Deus em oração hoje, renunciando ao amor ao dinheiro.' },
+            { id: 'f13', ctx: 'Você sofre um infarto fatal aos 45 anos porque ignorou a saúde. Sua família fica órfã.', text: 'Tenho cuidado da minha saúde física (exames, exercícios, alimentação, sono), compreendendo que não posso ser provedor se meu corpo falhar?', ref: '1 Coríntios 6:19', actionPlan: 'Agende um check-up médico completo ou inicie uma caminhada regular (3x na semana) para sair do sedentarismo.' }
         ],
         bloco2: [
-            { id: 's1', ctx: 'Seus filhos crescem e abandonam a fé. Quando questionados, dizem: "Meu pai só se importava com minhas notas na escola, ele nunca falou de Jesus comigo."', text: 'Assumo ativamente a responsabilidade de ser o "pastor" da minha casa, não terceirizando a liderança espiritual para a minha esposa ou apenas para a igreja?', ref: 'Efésios 6:4' },
-            { id: 's2', ctx: 'Uma crise atinge sua casa. Sua esposa busca um porto seguro espiritual, mas você está seco porque não abre a Bíblia há meses.', text: 'Promovo e conduzo momentos regulares de oração e devocional (leitura da Bíblia) em casa com minha família?', ref: 'Deuteronômio 6:6-7' },
-            { id: 's3', ctx: 'Seu filho desrespeita a mãe com palavrões. Ao ser corrigido, ele rebate: "Mas pai, você faz a mesma coisa."', text: 'Minhas atitudes diárias, meu linguajar e meu comportamento refletem os valores de Cristo, servindo de modelo de integridade para minha casa?', ref: 'Tito 2:7' },
-            { id: 's4', ctx: 'Domingo de manhã. Você prefere dormir mais ou trabalhar. Sua família vai à igreja sozinha. Com o tempo, eles também param de ir.', text: 'Priorizo a congregação, garantindo que minha família frequente a igreja regularmente e não permitindo que o trabalho seja desculpa para o afastamento?', ref: 'Hebreus 10:25' },
-            { id: 's5', ctx: 'Você trabalha 7 dias por semana justificando que é para "prover". Mas sua alma está exausta, sua esposa solitária e não há alegria na casa.', text: 'Guardo o dia de descanso, reservando tempo na semana especificamente para a adoração a Deus e para o descanso físico com a família?', ref: 'Êxodo 20:8' },
-            { id: 's6', ctx: 'Uma decisão de mudança de emprego aparece. Você decide puramente pela lógica do salário. É um desastre. Você percebe que nunca orou sobre isso.', text: 'Quando minha família precisa tomar decisões cruciais, minha primeira atitude é buscar a direção de Deus de joelhos junto com minha esposa?', ref: 'Provérbios 3:5-6' },
-            { id: 's7', ctx: 'Seu filho está sofrendo pressão e ataques espirituais pesados. Você não sabe, porque nunca ora de forma específica pelas lutas de cada um da casa.', text: 'Oro especificamente e diariamente pelas necessidades, fraquezas e lutas espirituais da minha esposa e dos meus filhos?', ref: 'Jó 1:5' },
-            { id: 's8', ctx: 'Seu filho entra na melhor faculdade, mas perde a alma para o secularismo, e você celebrou mais a aprovação acadêmica do que o batismo dele.', text: 'Ensino e demonstro aos meus filhos que buscar o Reino de Deus é infinitamente mais importante do que o sucesso acadêmico ou financeiro?', ref: 'Mateus 6:33' },
-            { id: 's9', ctx: 'A economia do país afunda. Você tem ataques de pânico e projeta pavor dentro de casa, agindo como se Deus não existisse.', text: 'Confio ativamente que Deus é o meu Jeová-Jiré, combatendo a ansiedade e o medo do futuro com a fé na Sua fidelidade?', ref: 'Filipenses 4:6-7' },
-            { id: 's10', ctx: 'Seu filho tem dificuldade de crer que Deus é um Pai amoroso porque o pai terreno dele é distante, duro e de amor condicional ao desempenho.', text: 'A visão que meus filhos têm de mim como pai terreno os ajuda a compreender e confiar no amor, na graça e na provisão de Deus Pai?', ref: 'Salmos 103:13' }
+            { id: 's1', ctx: 'Seus filhos abandonam a fé e dizem: "Meu pai só se importava com minhas notas; ele nunca falou de Jesus comigo."', text: 'Assumo ativamente a responsabilidade de ser o "pastor" da minha casa, não terceirizando a liderança espiritual para minha esposa ou igreja?', ref: 'Efésios 6:4', actionPlan: 'Reassuma a liderança espiritual do lar, não esperando apenas pela sua esposa para puxar as orações em família.' },
+            { id: 's2', ctx: 'Uma crise atinge sua casa. Sua esposa busca um porto seguro espiritual em você, mas você está seco.', text: 'Promovo e conduzo momentos regulares de oração e devocional (leitura da Bíblia) em casa com minha família?', ref: 'Deuteronômio 6:6-7', actionPlan: 'Defina 1 dia fixo na semana (ex: jantar de terça) para ler um texto bíblico curto com a família.' },
+            { id: 's3', ctx: 'Seu filho desrespeita a mãe com palavras ásperas e rebate: "Mas pai, você faz a mesma coisa."', text: 'Minhas atitudes diárias, meu linguajar e meu comportamento refletem os valores de Cristo, servindo de modelo de integridade para minha casa?', ref: 'Tito 2:7', actionPlan: 'Peça perdão sincero à sua família por atitudes ou vocabulário que não refletiram o caráter de Cristo recentemente.' },
+            { id: 's4', ctx: 'Domingo de manhã você prefere dormir. Com o tempo, sua família também para de congregar.', text: 'Priorizo a congregação, garantindo que minha família frequente a igreja e não permitindo que o trabalho seja desculpa para o afastamento?', ref: 'Hebreus 10:25', actionPlan: 'Assuma o compromisso irrevogável de não faltar aos cultos de domingo (levando sua família) pelas próximas 4 semanas.' },
+            { id: 's5', ctx: 'Você trabalha 7 dias por semana para "prover", mas sua alma está exausta e não há alegria na casa.', text: 'Guardo o dia de descanso, reservando tempo na semana especificamente para adoração a Deus e descanso físico familiar?', ref: 'Êxodo 20:8', actionPlan: 'Bloqueie um dia (ou ao menos um período) da sua semana de trabalho absoluto para descanso e foco em Deus.' },
+            { id: 's6', ctx: 'Você decide mudar de emprego pela lógica do salário. É um desastre, pois percebe que nunca orou sobre isso.', text: 'Quando precisamos tomar decisões cruciais (carreira/casa), minha primeira atitude é buscar a direção de Deus de joelhos junto com minha esposa?', ref: 'Provérbios 3:5-6', actionPlan: 'Antes de tomar qualquer nova decisão familiar/financeira, chame sua esposa para orarem juntos por 3 dias seguidos.' },
+            { id: 's7', ctx: 'Sua esposa enfrenta lutas e ataques espirituais pesados calada, e você nem imagina.', text: 'Oro especificamente e diariamente pelas necessidades, fraquezas e lutas espirituais da minha esposa?', ref: '1 Pedro 3:7', actionPlan: 'Pergunte hoje à sua esposa: "Qual é o seu maior desafio atual para eu orar por você todos os dias?"' },
+            { id: 's8', ctx: 'Seus filhos sofrem pressões seculares pesadas na escola todos os dias.', text: 'Oro especificamente e diariamente pelas lutas espirituais, proteção e pelo futuro dos meus filhos?', ref: 'Jó 1:5', actionPlan: 'Anote uma necessidade ou luta específica de cada filho e interceda por eles nominalmente todas as manhãs.' },
+            { id: 's9', ctx: 'Você celebrou mais a aprovação do seu filho na faculdade do que o dia do batismo dele.', text: 'Ensino e demonstro aos meus filhos que buscar o Reino de Deus é infinitamente mais importante do que sucesso acadêmico ou financeiro?', ref: 'Mateus 6:33', actionPlan: 'Elogie e reforce mais o caráter cristão e a obediência dos seus filhos do que apenas o boletim escolar deles.' },
+            { id: 's10', ctx: 'A economia do país afunda. Você tem ataques de pânico e projeta pavor dentro de casa.', text: 'Confio que Deus é o meu Jeová-Jiré, combatendo a ansiedade e o medo do futuro com fé na Sua fidelidade inabalável?', ref: 'Filipenses 4:6-7', actionPlan: 'Memorize Filipenses 4:19 para confessar toda vez que o medo da economia tentar roubar a paz do seu lar.' },
+            { id: 's11', ctx: 'Seu filho tem dificuldade de crer no amor de Deus, porque o pai terreno dele é duro e condicional.', text: 'A visão que meus filhos têm de mim (como pai terreno) os ajuda a compreender e confiar no amor, na graça e no perdão de Deus Pai?', ref: 'Salmos 103:13', actionPlan: 'Demonstre afeto e amor incondicional (sem atrelar a bom comportamento) aos seus filhos hoje para refletirem o amor de Deus.' }
         ],
         bloco3: [
-            { id: 'e1', ctx: 'Você abre a porta de casa. Imediatamente todos ficam quietos e pisando em ovos porque sabem que "o pai chegou estressado do trabalho".', text: 'Estabeleço limites firmes no trabalho para não chegar em casa diariamente esgotado, irritado e sem energia emocional para interagir?', ref: 'Colossenses 3:19' },
-            { id: 'e2', ctx: 'Você compra um videogame caro para compensar a ausência na apresentação escolar. Anos depois, ele não lembra do jogo, só lembra que você não estava lá.', text: 'Compreendo na prática que meu tempo, atenção e presença são muito mais valiosos para meus filhos do que presentes caros e coisas materiais?', ref: 'Provérbios 15:16' },
-            { id: 'e3', ctx: 'Sua esposa chora por um problema. Você tenta resolver tudo com frieza lógica, fazendo-a se sentir incompreendida. Ela para de se abrir com você.', text: 'Dedico tempo exclusivo para ouvir minha esposa, validando seus sentimentos com empatia, antes de tentar "consertar" o problema dela?', ref: '1 Pedro 3:7' },
-            { id: 'e4', ctx: 'Seu filho adolescente comete um erro grave. Em vez de pedir sua ajuda, ele esconde por terror das suas explosões de raiva.', text: 'Proporciono um ambiente seguro, onde minha família pode confessar falhas e medos sem sofrer com minhas explosões ou condenações?', ref: 'Colossenses 3:21' },
-            { id: 'e5', ctx: 'Você está no sofá, mas passou as últimas 2 horas rolando o celular. Seu filho pequeno desiste de tentar te mostrar um desenho.', text: 'Costumo desligar ou afastar as telas (celular, TV) para estar de "corpo e alma" 100% presente nos momentos de convivência familiar?', ref: 'Efésios 5:15-16' },
-            { id: 'e6', ctx: 'Você acha que é um marido excelente. Mas nunca perguntou a ela. Se ela respondesse com total honestidade hoje, a resposta te quebraria.', text: 'Tenho a coragem e a humildade de perguntar periodicamente à minha esposa e filhos onde estou falhando e o que precisam de mim?', ref: 'Provérbios 27:6' },
-            { id: 'e7', ctx: 'Você aceita o cargo que exige 60h semanais e muitas viagens. O dinheiro é ótimo, mas 5 anos depois o casamento acabou e os filhos são estranhos.', text: 'Estou disposto a recusar oportunidades de status ou dinheiro se elas forem destruir o tempo necessário de convivência e a saúde da família?', ref: 'Marcos 8:36' },
-            { id: 'e8', ctx: 'Sua esposa comete uma falha. Você guarda rancor, aplica o "tratamento de silêncio" por dias e congela a paz do ambiente.', text: 'Demonstro a graça do Evangelho, sendo rápido em pedir perdão quando erro e rápido em perdoar quando falham comigo?', ref: 'Efésios 4:32' },
-            { id: 'e9', ctx: 'Seus filhos têm tudo do bom e do melhor. Mas reclamam de tudo, não têm gratidão e te tratam como um caixa eletrônico. A affluenza os infectou.', text: 'Protejo meus filhos do materialismo e da ingratidão, ensinando-os o valor do trabalho e a não terem recompensas constantes sem esforço?', ref: 'Provérbios 22:6' },
-            { id: 'e10', ctx: 'Você está dando seu último suspiro no leito de morte. Seu chefe não está lá. Só sua família. O que eles dirão do seu legado?', text: 'Se meu tempo terminasse hoje, minha esposa e filhos teriam a convicção absoluta de que foram minha prioridade máxima terrena, acima da carreira?', ref: 'Salmos 39:4-5' }
+            { id: 'e1', ctx: 'Você abre a porta. Todos ficam quietos, pisando em ovos, pois "o pai chegou estressado do trabalho".', text: 'Estabeleço limites no trabalho para não chegar em casa diariamente esgotado, irritado e sem energia emocional para interagir?', ref: 'Colossenses 3:19', actionPlan: 'Faça uma pausa de 5 minutos no carro/rua antes de entrar em casa para deixar o estresse do trabalho do lado de fora.' },
+            { id: 'e2', ctx: 'Você compra presentes caros para compensar suas ausências. Anos depois, eles não lembram do presente, só da sua ausência.', text: 'Compreendo na prática que meu tempo e presença são muito mais valiosos para meus filhos do que presentes ou coisas materiais?', ref: 'Provérbios 15:16', actionPlan: 'Troque a compra de um brinquedo/recompensa por uma tarde brincando, passeando ou jogando bola com seus filhos.' },
+            { id: 'e3', ctx: 'Sua esposa chora por um problema. Você tenta resolver com frieza lógica, fazendo-a se sentir incompreendida.', text: 'Dedico tempo exclusivo para ouvir minha esposa, validando seus sentimentos com empatia, antes de tentar "consertar" o problema dela?', ref: '1 Pedro 3:7', actionPlan: 'Sente com sua esposa por 15 minutos hoje, pergunte como ela está, e APENAS ouça, proibindo a si mesmo de dar soluções.' },
+            { id: 'e4', ctx: 'Seu filho comete um erro. Em vez de pedir sua ajuda, ele esconde por terror das suas explosões de raiva.', text: 'Proporciono um ambiente seguro, onde minha família pode confessar falhas sem sofrer com minhas explosões, gritos ou condenações?', ref: 'Colossenses 3:21', actionPlan: 'Respire fundo e conte até 10 na próxima vez que algo der errado em casa. Troque o grito por uma correção firme e branda.' },
+            { id: 'e5', ctx: 'Você está no sofá, mas rolou o celular por 2 horas. Seu filho desiste de tentar falar com você.', text: 'Costumo desligar ou afastar as telas (celular, TV) para estar de "corpo e alma" 100% presente nos momentos de convivência?', ref: 'Efésios 5:15-16', actionPlan: 'Implemente a regra de ouro em casa: Celulares em "Modo Avião" ou em outro cômodo durante o horário de jantar em família.' },
+            { id: 'e6', ctx: 'Você acha que é um marido excelente, mas nunca perguntou à sua esposa. Se ela respondesse com honestidade, você se quebraria.', text: 'Tenho a coragem e humildade de perguntar periodicamente à minha esposa onde estou falhando como marido e o que ela precisa de mim?', ref: 'Provérbios 27:6', actionPlan: 'Pergunte à sua esposa hoje: "O que eu posso melhorar para que você se sinta mais amada e segura ao meu lado?"' },
+            { id: 'e7', ctx: 'Seus filhos adolescentes começam a se fechar no quarto e se distanciar emocionalmente de você.', text: 'Tenho a humildade de perguntar aos meus filhos se tem alguma atitude minha que os entristece, ofende ou afasta?', ref: 'Efésios 6:4', actionPlan: 'Pergunte aos seus filhos: "Tem alguma atitude do papai ou jeito que eu falo que deixa vocês tristes?"' },
+            { id: 'e8', ctx: 'Você aceita a promoção de 60h semanais e viagens. O dinheiro é ótimo, mas 5 anos depois o casamento acabou.', text: 'Estou disposto a recusar oportunidades de status/dinheiro se elas exigirem tempo excessivo que destrua a saúde da minha família?', ref: 'Marcos 8:36', actionPlan: 'Reavalie suas horas extras urgentes. Corte algum compromisso não essencial que está roubando você da sua família.' },
+            { id: 'e9', ctx: 'Sua esposa erra. Você guarda rancor e aplica o "tratamento de silêncio" por dias, congelando a paz do lar.', text: 'Demonstro a graça do Evangelho, sendo rápido em pedir perdão quando erro e rápido em perdoar quando falham comigo?', ref: 'Efésios 4:32', actionPlan: 'Quebre o seu orgulho: comprometa-se a ser o primeiro a pedir desculpas na próxima divergência conjugal.' },
+            { id: 'e10', ctx: 'Seus filhos têm tudo do bom e do melhor, mas reclamam de tudo e não têm gratidão. A "affluenza" os infectou.', text: 'Protejo meus filhos do materialismo, ensinando o valor do trabalho e a não terem recompensas constantes sem esforço?', ref: 'Provérbios 22:6', actionPlan: 'Dê uma pequena responsabilidade ou tarefa para seus filhos antes de recompensá-los com algo que desejam facilmente.' },
+            { id: 'e11', ctx: 'Você dá seu último suspiro. Seu chefe não está lá, só sua família. O que eles dirão do seu legado?', text: 'Se meu tempo terminasse hoje, minha esposa e filhos teriam a convicção absoluta de que foram minha maior prioridade terrena?', ref: 'Salmos 39:4', actionPlan: 'Cancele ou mude um compromisso de rotina nas próximas semanas exclusivamente para focar em uma noite com sua família.' }
         ]
     };
+
+    const allQuestions = [...dbQuestions.bloco1, ...dbQuestions.bloco2, ...dbQuestions.bloco3];
 
     // --- RENDERIZAR INTERFACE ---
     function renderQuestions(containerId, questionsArr) {
@@ -243,7 +242,6 @@
     renderQuestions('questions-2', dbQuestions.bloco2);
     renderQuestions('questions-3', dbQuestions.bloco3);
 
-    // Controle visual dos Radios
     window.selectOption = function(labelEl, name, val, typeClass) {
         const labels = document.querySelectorAll(`input[name="${name}"]`);
         labels.forEach(input => {
@@ -255,7 +253,6 @@
 
     // --- WIZARD E VALIDAÇÃO ---
     window.nextStep = function(current) {
-        // Validar se todas as perguntas do bloco foram respondidas
         const inputs = document.getElementById(`step-${current}`).querySelectorAll('input[type="radio"]');
         const names = new Set();
         inputs.forEach(i => names.add(i.name));
@@ -282,11 +279,10 @@
         window.scrollTo(0, 0);
     }
 
-    // --- LÓGICA DE CÁLCULO E FEEDBACK ---
+    // --- LÓGICA DE CÁLCULO E PLANO DINÂMICO ---
     document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Verifica bloco 3
         const inputs = document.getElementById(`step-3`).querySelectorAll('input[type="radio"]');
         const names = new Set();
         inputs.forEach(i => names.add(i.name));
@@ -294,172 +290,152 @@
         names.forEach(name => { if(document.querySelector(`input[name="${name}"]:checked`)) answered++; });
         if(answered < names.size) return alert("Por favor, responda todas as perguntas finais.");
 
+        const btnSubmit = document.getElementById('btnFinalizar');
+        btnSubmit.innerText = "Processando Diagnóstico...";
+        btnSubmit.disabled = true;
         document.getElementById('progress-fill').style.width = '100%';
 
         const formData = new FormData(e.target);
+        
+        // Estrutura para receber as piores notas e gerar o plano
         let results = {
-            f: { score: 0, max: 0, name: 'Provisão Financeira/Física', plan: [
-                "Agende imediatamente um check-up médico completo.",
-                "Liste todas as dívidas e crie um plano de quitação agressivo.",
-                "Sente com sua esposa nesta semana para abrir as contas e definir o orçamento juntos.",
-                "Faça uma cotação de Seguro de Vida nos próximos 5 dias.",
-                "Crie uma 'Pasta de Emergência' com senhas e apólices e mostre a ela onde fica."
-            ]},
-            s: { score: 0, max: 0, name: 'Provisão Espiritual', plan: [
-                "Ore com sua esposa hoje à noite antes de dormir. Apenas comece.",
-                "Defina 1 dia fixo na semana (ex: jantar de terça) para ler um texto bíblico curto com a família.",
-                "Assuma o compromisso de não faltar aos cultos de domingo por 1 mês seguido.",
-                "Comece uma lista de oração anotando 1 necessidade específica de cada filho.",
-                "Exerça confiança devolvendo o dízimo fielmente na próxima entrada financeira."
-            ]},
-            e: { score: 0, max: 0, name: 'Provisão Emocional', plan: [
-                "Implemente a regra: Celular em 'Modo Avião' ou fora de alcance durante o jantar.",
-                "Leve sua esposa para sair (só vocês dois) e limite-se a ouvi-la, sem tentar consertar os problemas.",
-                "Peça perdão especificamente por uma explosão de raiva recente que você cometeu em casa.",
-                "Marque na agenda um tempo individual de qualidade com cada filho neste final de semana.",
-                "Pergunte à sua esposa hoje: 'O que eu posso fazer para você se sentir mais amada e segura?'"
-            ]}
+            f: { score: 0, max: 0, name: 'Provisão Financeira/Física', badAnswers: [], 
+                 fallback: ["Mantenha a revisão periódica do seu orçamento.", "Continue se capacitando profissionalmente.", "Não deixe de cuidar da saúde com exames anuais.", "Revise seus investimentos e reservas anualmente.", "Mantenha o padrão de generosidade no Reino."] },
+            s: { score: 0, max: 0, name: 'Provisão Espiritual', badAnswers: [], 
+                 fallback: ["Mantenha o ritmo de leitura bíblica diária.", "Continue pastoreando sua esposa com amor.", "Ore para que seu testemunho alcance outras famílias.", "Continue priorizando os cultos dominicais.", "Discipule outros homens mais jovens no grupo."] },
+            e: { score: 0, max: 0, name: 'Provisão Emocional', badAnswers: [], 
+                 fallback: ["Continue blindando seu casamento contra as demandas do trabalho.", "Planeje momentos surpresas de lazer para a família.", "Mantenha a prática do diálogo aberto e sem julgamentos.", "Continue sendo um porto seguro nos dias difíceis.", "Celebre as pequenas vitórias do dia a dia com sua família."] }
         };
 
         let dbRespostas = {};
 
+        // Avaliação de cada resposta
         for (let [key, value] of formData.entries()) {
             dbRespostas[key] = value;
-            const area = key.charAt(0); // f, s ou e
+            const area = key.charAt(0);
+            
             if(value !== 'NA') {
-                results[area].score += parseInt(value);
-                results[area].max += 2; // Cada questão vale 2
+                const numVal = parseInt(value);
+                results[area].score += numVal;
+                results[area].max += 2;
+                
+                // Se o usuário tirou 0 ou 1, a pergunta entra na fila de correção
+                if (numVal < 2) {
+                    const qObj = allQuestions.find(q => q.id === key);
+                    results[area].badAnswers.push({ val: numVal, plan: qObj.actionPlan });
+                }
             }
         }
 
-        // Renderizar o Resultado
         let htmlResult = '';
+        let textoEmail = `Olá! Segue o resultado do seu Diagnóstico de Provisão Integral:\n\n`;
+
+        // Montagem do Plano de Ação Top 5 para cada área
         for (let key in results) {
             let res = results[key];
             let pct = res.max > 0 ? Math.round((res.score / res.max) * 100) : 0;
             let statusObj = getStatusInfo(pct);
             
-            let planList = res.plan.map(p => `<li>${p}</li>`).join('');
+            // Ordena para que os 0s (Não) venham antes dos 1s (Parcial)
+            res.badAnswers.sort((a, b) => a.val - b.val);
+            
+            // Pega as 5 dicas mais urgentes baseadas nas falhas do usuário
+            let finalPlan = res.badAnswers.map(a => a.plan).slice(0, 5);
+            
+            // Se o usuário for muito bem e não tiver 5 falhas, completa com conselhos de manutenção
+            let fallbackIndex = 0;
+            while (finalPlan.length < 5 && fallbackIndex < res.fallback.length) {
+                finalPlan.push(res.fallback[fallbackIndex]);
+                fallbackIndex++;
+            }
+
+            let planListHtml = finalPlan.map(p => `<li>${p}</li>`).join('');
+            let planListText = finalPlan.map(p => `- ${p}\n`).join('');
 
             htmlResult += `
                 <div style="margin-bottom: 25px; border-left: 5px solid ${statusObj.color}; padding: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                     <div style="font-size:1.2em; font-weight:bold; color:${statusObj.color}; margin-bottom:10px;">${res.name}: ${pct}% de Eficiência</div>
                     <p style="margin-bottom: 10px;"><strong>Diagnóstico:</strong> ${statusObj.text}</p>
                     <div class="action-plan">
-                        <strong>Plano de Ação Imediato:</strong>
-                        <ul>${planList}</ul>
+                        <strong>Plano de Ação Personalizado (Top 5 Prioridades):</strong>
+                        <ul>${planListHtml}</ul>
                     </div>
                 </div>
             `;
+
+            textoEmail += `--- ${res.name.toUpperCase()} ---\n`;
+            textoEmail += `Eficiência: ${pct}%\n`;
+            textoEmail += `Diagnóstico: ${statusObj.text}\n`;
+            textoEmail += `Plano de Ação (Prioridades):\n${planListText}\n\n`;
         }
 
-        document.getElementById('results-content').innerHTML = htmlResult;
-        document.getElementById('assessment-container').style.display = 'none';
-        document.getElementById('results').style.display = 'block';
-        window.scrollTo(0, 0);
+        textoEmail += `Lembre-se: Deus capacita o homem que assume a responsabilidade. Avante!`;
 
-        // SALVAR NO FIREBASE
+        document.getElementById('results-content').innerHTML = htmlResult;
+
+        // SALVAR NO FIRESTORE
         try {
             await addDoc(collection(db, "diagnosticos"), {
                 usuarioId: currentUser ? currentUser.uid : "anonimo",
                 usuarioNome: currentUser ? currentUser.displayName : "N/A",
+                usuarioEmail: currentUser ? currentUser.email : "N/A",
                 respostasBrutas: dbRespostas,
                 dataEnvio: serverTimestamp(),
                 projeto: "RTH2026"
             });
-        } catch (e) {
-            console.error("Erro ao salvar:", e);
+        } catch (err) {
+            console.error("Erro ao salvar no banco:", err);
         }
+
+        // ENVIAR VIA EMAILJS
+        if (currentUser && currentUser.email) {
+            try {
+                const templateParams = { user_email: currentUser.email, user_name: currentUser.displayName || "Irmão", message: textoEmail };
+                await emailjs.send("SEU_SERVICE_ID_AQUI", "SEU_TEMPLATE_ID_AQUI", templateParams);
+            } catch (err) {
+                console.error("Falha ao enviar e-mail:", err);
+            }
+        }
+
+        document.getElementById('assessment-container').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        window.scrollTo(0, 0);
     });
 
     function getStatusInfo(pct) {
         if(pct >= 80) return { color: '#10b981', text: 'Você tem governado bem o seu lar. Mantenha a vigilância, invista em melhoria contínua e ajude a discipular outros homens do grupo que estão com dificuldades.'};
-        if(pct >= 50) return { color: '#f59e0b', text: 'Você tem consciência do seu papel, mas está vulnerável. Há brechas que precisam ser fechadas urgentemente antes que uma crise exponha as estruturas da sua casa.'};
-        return { color: '#ef4444', text: 'Estado Crítico. Sua família está desprotegida e você está falhando gravemente no seu chamado. É hora de arrepender-se da inércia, abandonar as desculpas e agir como o homem de coragem que Deus te chamou para ser.'};
+        if(pct >= 50) return { color: '#f59e0b', text: 'Você tem consciência do seu papel, mas está vulnerável. Há brechas (falhas apontadas no plano abaixo) que precisam ser fechadas urgentemente antes que uma crise exponha as estruturas da sua casa.'};
+        return { color: '#ef4444', text: 'Estado Crítico. Sua família está desprotegida e você está falhando gravemente no seu chamado. É hora de arrepender-se da inércia, abandonar as desculpas e agir como o homem de coragem que Deus te chamou para ser focando nas ações abaixo.'};
     }
 
-// --- FUNÇÕES DE AUTH DA TELA ---
-    window.toggleAuth = (id) => { document.getElementById('email-form').style.display = 'none'; document.getElementById('phone-form').style.display = 'none'; if(id) document.getElementById(id).style.display = 'block'; };
+    // --- FUNÇÕES DE AUTH DA TELA ---
+    window.toggleAuth = (id) => { document.getElementById('email-form').style.display = 'none'; if(id) document.getElementById(id).style.display = 'block'; };
     
-    // Função para traduzir erros comuns do Firebase
     function traduzirErro(erroCode) {
-        switch (erroCode) {
-            case 'auth/email-already-in-use': return 'Este e-mail já está cadastrado. Por favor, clique em "Entrar" em vez de "Criar Conta".';
-            case 'auth/invalid-credential': return 'E-mail ou senha incorretos.';
-            case 'auth/weak-password': return 'A senha é muito fraca. Digite pelo menos 6 caracteres.';
-            case 'auth/invalid-email': return 'O formato do e-mail é inválido.';
-            case 'auth/unauthorized-domain': return 'Domínio não autorizado. O administrador precisa liberar esta URL no Firebase.';
-            default: return 'Ocorreu um erro: ' + erroCode;
-        }
+        const erro = String(erroCode).toLowerCase();
+        if (erro.includes('invalid-credential') || erro.includes('user-not-found') || erro.includes('wrong-password')) return 'E-mail não cadastrado ou senha incorreta.';
+        if (erro.includes('email-already-in-use')) return 'Este e-mail já está cadastrado. Por favor, clique em "Fazer Login".';
+        if (erro.includes('weak-password')) return 'Senha muito fraca. Digite pelo menos 6 caracteres.';
+        if (erro.includes('invalid-email')) return 'Formato de e-mail inválido.';
+        return 'Ocorreu um erro: ' + erroCode;
     }
 
-    window.loginGoogle = async () => { 
-        try { 
-            const r = await signInWithPopup(auth, new GoogleAuthProvider()); 
-            setUser(r.user); 
-        } catch(e) { 
-            alert(traduzirErro(e.code)); 
-        } 
-    };
-
-    window.loginEmail = async () => { 
-        try { 
-            const r = await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); 
-            setUser(r.user); 
-        } catch(e) { 
-            alert(traduzirErro(e.code)); 
-        } 
-    };
-
+    window.loginGoogle = async () => { try { const r = await signInWithPopup(auth, new GoogleAuthProvider()); setUser(r.user); } catch(e) { alert(traduzirErro(e.code)); } };
+    window.loginEmail = async () => { try { const r = await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); setUser(r.user); } catch(e) { alert(traduzirErro(e.code)); } };
     window.registerEmail = async () => { 
         try { 
             const r = await createUserWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); 
-            
-            // Dispara o e-mail de verificação padrão do Firebase
             await sendEmailVerification(r.user);
             alert("Conta criada com sucesso! Enviamos um link de verificação para o seu e-mail.");
-            
             setUser(r.user); 
-        } catch(e) { 
-            alert(traduzirErro(e.code)); 
-        } 
-    };
-
-    window.sendSMS = async () => {
-        let phoneNumber = document.getElementById('phoneInput').value.trim();
-        
-        // Correção automática: Se o usuário esquecer o +, o sistema coloca
-        if(phoneNumber.length > 0 && !phoneNumber.startsWith('+')) {
-            phoneNumber = '+' + phoneNumber;
-        }
-
-        if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
-        
-        try { 
-            confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier); 
-            document.getElementById('otp-section').style.display = 'block'; 
-            document.getElementById('btnSendSms').style.display = 'none'; 
-        } catch(e) { 
-            alert(traduzirErro(e.code));
-            // Reseta o reCAPTCHA em caso de erro para permitir nova tentativa
-            if(window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-        }
-    };
-
-    window.verifyOTP = async () => { 
-        try { 
-            const r = await confirmationResult.confirm(document.getElementById('otpInput').value); 
-            setUser(r.user); 
-        } catch(e) { 
-            alert("Código Inválido ou expirado. Tente novamente."); 
-        } 
+        } catch(e) { alert(traduzirErro(e.code)); } 
     };
     
     function setUser(user) {
         currentUser = user;
         document.getElementById('email-form').style.display = 'none';
-        document.getElementById('phone-form').style.display = 'none';
-        document.getElementById('user-info').innerText = "✅ Autenticado com Sucesso!";
+        let userNameDisplay = user.displayName ? user.displayName : user.email;
+        document.getElementById('user-info').innerText = `✅ Autenticado como: ${userNameDisplay}`;
         document.getElementById('user-info').style.display = 'block';
         document.getElementById('btnStart').style.display = 'block';
     }
