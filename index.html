@@ -4,196 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico RTH: O Homem Provedor</title>
-
-<div id="auth-section" class="card" style="margin-bottom: 30px; border: 2px solid var(--secondary-color);">
-    <h2 style="margin-bottom: 15px;">Identificação do Participante</h2>
-    <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;">Faça login para podermos salvar e acompanhar seu diagnóstico.</p>
-    
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
-        <button type="button" onclick="loginGoogle()" class="btn-submit" style="background:#db4437; flex:1; padding:10px;">Google</button>
-        <button type="button" onclick="toggleAuthForm('email-form')" class="btn-submit" style="background:#4B5563; flex:1; padding:10px;">E-mail e Senha</button>
-        <button type="button" onclick="toggleAuthForm('phone-form')" class="btn-submit" style="background:#10B981; flex:1; padding:10px;">Celular (SMS)</button>
-    </div>
-
-    <div id="email-form" style="display:none; background:#f9fafb; padding:15px; border-radius:6px; border: 1px solid var(--border);">
-        <input type="email" id="emailInput" placeholder="Seu E-mail" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-        <input type="password" id="passwordInput" placeholder="Sua Senha (mínimo 6 caracteres)" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-        <div style="display:flex; gap:10px;">
-            <button type="button" onclick="loginEmail()" class="btn-submit" style="flex:1; padding:10px; font-size:1em;">Entrar</button>
-            <button type="button" onclick="registerEmail()" class="btn-submit" style="background:var(--primary-color); flex:1; padding:10px; font-size:1em;">Criar Nova Conta</button>
-        </div>
-    </div>
-
-    <div id="phone-form" style="display:none; background:#f9fafb; padding:15px; border-radius:6px; border: 1px solid var(--border);">
-        <p style="font-size: 0.85em; color: var(--text-muted); margin-top:0;">Digite no formato internacional: +55 (DDD) Número</p>
-        <input type="tel" id="phoneInput" placeholder="+5511999999999" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-        <div id="recaptcha-container" style="margin-bottom:10px;"></div>
-        <button type="button" id="btnSendSms" onclick="sendSMS()" class="btn-submit" style="width:100%; padding:10px; font-size:1em;">Enviar Código por SMS</button>
-
-        <div id="otp-section" style="display:none; margin-top:15px; border-top: 1px solid #ddd; padding-top:15px;">
-            <input type="text" id="otpInput" placeholder="Digite o código de 6 dígitos" style="width:calc(100% - 20px); padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:4px;">
-            <button type="button" onclick="verifyOTP()" class="btn-submit" style="width:100%; padding:10px; font-size:1em; background:var(--primary-color);">Verificar Código</button>
-        </div>
-    </div>
-
-    <div id="user-info" style="display:none; margin-top:15px; color: var(--success); font-weight: bold; text-align:center;"></div>
-</div>
-
     <style>
         :root {
-            --primary-color: #1E3A8A; /* Azul escuro, transmite segurança e seriedade */
-            --secondary-color: #3B82F6;
-            --background: #F3F4F6;
-            --card-bg: #FFFFFF;
-            --text-main: #1F2937;
-            --text-muted: #4B5563;
+            --primary: #1E3A8A;
+            --secondary: #3B82F6;
+            --bg: #F3F4F6;
+            --card: #FFFFFF;
+            --text: #1F2937;
+            --muted: #6B7280;
             --border: #E5E7EB;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
+            --accent: #F59E0B;
         }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--background);
-            color: var(--text-main);
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { color: var(--primary); margin-bottom: 5px; }
+        
+        .card { background: var(--card); border-radius: 8px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
+        /* Estilos do Wizard (Paginação) */
+        .step { display: none; }
+        .step.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .progress-bar { display: flex; justify-content: space-between; margin-bottom: 20px; background: #e5e7eb; border-radius: 20px; overflow: hidden; height: 10px; }
+        .progress-fill { background: var(--primary); width: 0%; transition: width 0.3s; }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+        /* Estilos das Perguntas */
+        .question-box { margin-bottom: 35px; padding-bottom: 25px; border-bottom: 1px solid var(--border); }
+        .scenario { background: #FFFBEB; border-left: 4px solid var(--accent); padding: 15px; margin-bottom: 15px; font-style: italic; font-size: 0.95em; border-radius: 0 4px 4px 0; }
+        .scenario strong { color: #D97706; font-style: normal; display: block; margin-bottom: 5px; }
+        .ask { font-weight: 600; font-size: 1.1em; margin-bottom: 10px; }
+        .verse { font-size: 0.85em; color: var(--muted); text-align: right; margin-bottom: 15px; }
+        
+        .options-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .option-label { display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f9fafb; border: 1px solid var(--border); padding: 15px 5px; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; font-size: 0.9em; font-weight: bold; }
+        .option-label:hover { border-color: var(--secondary); background: #eff6ff; }
+        .option-label input { margin-bottom: 8px; transform: scale(1.3); cursor: pointer; }
+        .option-label.checked-sim { background: #d1fae5; border-color: #10b981; color: #065f46; }
+        .option-label.checked-parcial { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+        .option-label.checked-nao { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .option-label.checked-na { background: #e5e7eb; border-color: #6b7280; color: #374151; }
 
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 6px; font-size: 1em; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: var(--secondary); }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
 
-        header h1 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 1.1em;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-        }
-
-        h2 {
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-
-        .question-group {
-            margin-bottom: 25px;
-        }
-
-        .question-text {
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: block;
-        }
-
-        .options {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            background: #f9fafb;
-            padding: 10px;
-            border-radius: 6px;
-        }
-
-        .options label {
-            flex: 1;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.9em;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .options input[type="radio"] {
-            cursor: pointer;
-            transform: scale(1.2);
-        }
-
-        .btn-submit {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 1.2em;
-            border-radius: 6px;
-            cursor: pointer;
-            width: 100%;
-            transition: background-color 0.3s;
-            font-weight: bold;
-        }
-
-        .btn-submit:hover {
-            background-color: var(--secondary-color);
-        }
-
-        #results {
-            display: none;
-        }
-
-        .result-area {
-            margin-bottom: 25px;
-            padding: 20px;
-            border-radius: 6px;
-            border-left: 5px solid;
-        }
-
-        .result-title {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .score-bar {
-            height: 10px;
-            background-color: #e5e7eb;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .score-fill {
-            height: 100%;
-            transition: width 1s ease-in-out;
-        }
-
-        .status-danger { border-color: var(--danger); background-color: #FEF2F2; }
-        .status-danger .score-fill { background-color: var(--danger); }
-        .status-danger .result-title { color: var(--danger); }
-
-        .status-warning { border-color: var(--warning); background-color: #FFFBEB; }
-        .status-warning .score-fill { background-color: var(--warning); }
-        .status-warning .result-title { color: #D97706; }
-
-        .status-success { border-color: var(--success); background-color: #ECFDF5; }
-        .status-success .score-fill { background-color: var(--success); }
-        .status-success .result-title { color: var(--success); }
+        /* Resultados */
+        .result-section { margin-bottom: 30px; padding: 20px; border-radius: 8px; border: 1px solid var(--border); }
+        .action-plan { background: #f8fafc; padding: 15px; border-radius: 6px; margin-top: 15px; border-left: 4px solid var(--primary); }
+        .action-plan ul { margin: 0; padding-left: 20px; }
+        .action-plan li { margin-bottom: 8px; font-size: 0.95em; }
 
         @media (max-width: 600px) {
-            .options { flex-direction: column; align-items: flex-start; }
-            .options label { flex-direction: row; text-align: left; }
+            .options-grid { grid-template-columns: 1fr; }
+            .option-label { flex-direction: row; justify-content: flex-start; gap: 15px; padding: 15px; }
+            .option-label input { margin-bottom: 0; }
         }
     </style>
 </head>
@@ -201,409 +69,340 @@
 
 <div class="container">
     <header>
-        <h1>A Resolução de Todo Homem</h1>
-        <p>Diagnóstico de Provisão: Financeira, Espiritual e Emocional (Semana 10)</p>
+        <h1>Resolução de Todo Homem</h1>
+        <p>Diagnóstico de Provisão Integral (Semana 10)</p>
     </header>
 
-    <form id="assessmentForm">
-        <div class="card">
-            <h2>1. Provisão Financeira & Segurança</h2>
-            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Mas, se alguém não tem cuidado dos seus, e principalmente dos da sua família, negou a fé, e é pior do que o infiel." (1 Timóteo 5:8)</em></p>
-            
-            <div class="question-group">
-                <span class="question-text">1. Possuo uma reserva de emergência capaz de sustentar o padrão de vida da minha família por pelo menos 3 a 6 meses em caso de perda de emprego ou crise.</span>
-                <div class="options">
-                    <label><input type="radio" name="f1" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="f1" value="2"> Discordo</label>
-                    <label><input type="radio" name="f1" value="3"> Neutro</label>
-                    <label><input type="radio" name="f1" value="4"> Concordo</label>
-                    <label><input type="radio" name="f1" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">2. Possuo seguro de vida e/ou patrimônio estruturado que garanta o sustento, moradia e não deixe dívidas para minha família caso eu venha a falecer ou me torne inválido.</span>
-                <div class="options">
-                    <label><input type="radio" name="f2" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="f2" value="2"> Discordo</label>
-                    <label><input type="radio" name="f2" value="3"> Neutro</label>
-                    <label><input type="radio" name="f2" value="4"> Concordo</label>
-                    <label><input type="radio" name="f2" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">3. Minha família está livre de dívidas destrutivas (cartão de crédito rotativo, cheque especial, agiotas) e temos um orçamento mensal que governamos com sabedoria.</span>
-                <div class="options">
-                    <label><input type="radio" name="f3" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="f3" value="2"> Discordo</label>
-                    <label><input type="radio" name="f3" value="3"> Neutro</label>
-                    <label><input type="radio" name="f3" value="4"> Concordo</label>
-                    <label><input type="radio" name="f3" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">4. Tenho um planejamento claro para lidar com imprevistos de saúde (um bom plano de saúde familiar ou fundo de saúde) para não comprometer a integridade da família.</span>
-                <div class="options">
-                    <label><input type="radio" name="f4" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="f4" value="2"> Discordo</label>
-                    <label><input type="radio" name="f4" value="3"> Neutro</label>
-                    <label><input type="radio" name="f4" value="4"> Concordo</label>
-                    <label><input type="radio" name="f4" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
+    <div id="auth-section" class="card" style="border: 2px solid var(--secondary);">
+        <h2 style="margin-top: 0;">Identificação</h2>
+        <p style="color: var(--muted); font-size: 0.9em;">Faça login para iniciar o diagnóstico.</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="loginGoogle()" class="btn" style="background:#db4437; flex:1;">Google</button>
+            <button onclick="toggleAuth('email-form')" class="btn" style="background:#4B5563; flex:1;">E-mail</button>
+            <button onclick="toggleAuth('phone-form')" class="btn" style="background:#10B981; flex:1;">Celular SMS</button>
         </div>
-
-        <div class="card">
-            <h2>2. Provisão Espiritual (Sacerdócio)</h2>
-            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Eu e a minha casa serviremos ao Senhor." (Josué 24:15)</em></p>
-            
-            <div class="question-group">
-                <span class="question-text">5. Eu lidero ativamente minha família em oração e devocionais (leitura da Bíblia) de forma regular e intencional, não deixando essa carga apenas para minha esposa.</span>
-                <div class="options">
-                    <label><input type="radio" name="s1" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="s1" value="2"> Discordo</label>
-                    <label><input type="radio" name="s1" value="3"> Neutro</label>
-                    <label><input type="radio" name="s1" value="4"> Concordo</label>
-                    <label><input type="radio" name="s1" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">6. Minhas atitudes diárias, linguajar e comportamento refletem os valores de Cristo, servindo como modelo de integridade para minha esposa e filhos.</span>
-                <div class="options">
-                    <label><input type="radio" name="s2" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="s2" value="2"> Discordo</label>
-                    <label><input type="radio" name="s2" value="3"> Neutro</label>
-                    <label><input type="radio" name="s2" value="4"> Concordo</label>
-                    <label><input type="radio" name="s2" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">7. Eu priorizo a comunhão da minha família na igreja local, sou assíduo e incentivo minha casa a servir no Reino de Deus.</span>
-                <div class="options">
-                    <label><input type="radio" name="s3" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="s3" value="2"> Discordo</label>
-                    <label><input type="radio" name="s3" value="3"> Neutro</label>
-                    <label><input type="radio" name="s3" value="4"> Concordo</label>
-                    <label><input type="radio" name="s3" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">8. Quando enfrentamos crises ou preciso tomar decisões importantes para a casa, busco primeiro a direção de Deus e dobro os joelhos com minha esposa.</span>
-                <div class="options">
-                    <label><input type="radio" name="s4" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="s4" value="2"> Discordo</label>
-                    <label><input type="radio" name="s4" value="3"> Neutro</label>
-                    <label><input type="radio" name="s4" value="4"> Concordo</label>
-                    <label><input type="radio" name="s4" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>3. Provisão Emocional</h2>
-            <p style="color: var(--text-muted); font-size: 0.9em; margin-bottom: 20px;"><em>"Maridos, amai a vossas mulheres e não vos irriteis contra elas... Pais, não irriteis a vossos filhos, para que não fiquem desanimados." (Colossenses 3:19, 21)</em></p>
-            
-            <div class="question-group">
-                <span class="question-text">9. Ofereço um ambiente seguro em casa, onde minha esposa e filhos sentem que podem compartilhar seus medos e falhas sem medo da minha ira, explosões ou julgamentos severos.</span>
-                <div class="options">
-                    <label><input type="radio" name="e1" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="e1" value="2"> Discordo</label>
-                    <label><input type="radio" name="e1" value="3"> Neutro</label>
-                    <label><input type="radio" name="e1" value="4"> Concordo</label>
-                    <label><input type="radio" name="e1" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">10. Dedico tempo de qualidade intencional e exclusivo para minha esposa e filhos, estando presente de corpo e alma (sem distrações como celular ou TV).</span>
-                <div class="options">
-                    <label><input type="radio" name="e2" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="e2" value="2"> Discordo</label>
-                    <label><input type="radio" name="e2" value="3"> Neutro</label>
-                    <label><input type="radio" name="e2" value="4"> Concordo</label>
-                    <label><input type="radio" name="e2" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">11. Consigo gerenciar o estresse e as pressões do trabalho de forma madura, deixando os problemas do lado de fora e não descontando minhas frustrações na minha família.</span>
-                <div class="options">
-                    <label><input type="radio" name="e3" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="e3" value="2"> Discordo</label>
-                    <label><input type="radio" name="e3" value="3"> Neutro</label>
-                    <label><input type="radio" name="e3" value="4"> Concordo</label>
-                    <label><input type="radio" name="e3" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-
-            <div class="question-group">
-                <span class="question-text">12. Valido os sentimentos da minha esposa, oferecendo ombro amigo e empatia, em vez de apenas tentar consertar tudo logicamente ou minimizar o que ela sente.</span>
-                <div class="options">
-                    <label><input type="radio" name="e4" value="1" required> Discordo Totalmente</label>
-                    <label><input type="radio" name="e4" value="2"> Discordo</label>
-                    <label><input type="radio" name="e4" value="3"> Neutro</label>
-                    <label><input type="radio" name="e4" value="4"> Concordo</label>
-                    <label><input type="radio" name="e4" value="5"> Concordo Totalmente</label>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" class="btn-submit">Gerar Meu Diagnóstico</button>
-    </form>
-
-    <div id="results" class="card" style="margin-top: 30px;">
-        <h2 style="text-align: center;">Seu Diagnóstico como Provedor</h2>
-        <p style="text-align: center; color: var(--text-muted);">Avalie suas fortalezas e onde Deus está te chamando para crescer e agir com urgência.</p>
         
-        <div id="financialResult" class="result-area"></div>
-        <div id="spiritualResult" class="result-area"></div>
-        <div id="emotionalResult" class="result-area"></div>
-        
-        <button onclick="window.print()" class="btn-submit" style="background-color: var(--text-muted); margin-top: 20px;">Imprimir / Salvar PDF</button>
+        <div id="email-form" style="display:none; margin-top:15px;">
+            <input type="email" id="emailInput" placeholder="E-mail" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+            <input type="password" id="passwordInput" placeholder="Senha" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+            <div style="display:flex; gap:10px;">
+                <button onclick="loginEmail()" class="btn" style="flex:1;">Entrar</button>
+                <button onclick="registerEmail()" class="btn btn-outline" style="flex:1;">Criar Conta</button>
+            </div>
+        </div>
+
+        <div id="phone-form" style="display:none; margin-top:15px;">
+            <input type="tel" id="phoneInput" placeholder="+5511999999999" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+            <div id="recaptcha-container"></div>
+            <button id="btnSendSms" onclick="sendSMS()" class="btn" style="width:100%;">Enviar SMS</button>
+            <div id="otp-section" style="display:none; margin-top:10px;">
+                <input type="text" id="otpInput" placeholder="Código de 6 dígitos" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+                <button onclick="verifyOTP()" class="btn" style="width:100%;">Verificar</button>
+            </div>
+        </div>
+
+        <div id="user-info" style="display:none; margin-top:15px; color: #10B981; font-weight: bold; text-align:center;"></div>
+        <button id="btnStart" onclick="startAssessment()" class="btn" style="width:100%; margin-top:20px; display:none; font-size:1.2em;">Iniciar Diagnóstico</button>
     </div>
 
+    <div id="assessment-container" style="display:none;">
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <form id="assessmentForm">
+            
+            <div id="step-1" class="step card active">
+                <h2 style="color:var(--primary); margin-top:0;">Parte 1: Provisão Financeira e Física</h2>
+                <div id="questions-1"></div>
+                <div class="nav-buttons">
+                    <div></div>
+                    <button type="button" class="btn" onclick="nextStep(1)">Próxima Área ➔</button>
+                </div>
+            </div>
+
+            <div id="step-2" class="step card">
+                <h2 style="color:var(--primary); margin-top:0;">Parte 2: Provisão Espiritual (Sacerdócio)</h2>
+                <div id="questions-2"></div>
+                <div class="nav-buttons">
+                    <button type="button" class="btn btn-outline" onclick="prevStep(2)">🡠 Voltar</button>
+                    <button type="button" class="btn" onclick="nextStep(2)">Próxima Área ➔</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="step card">
+                <h2 style="color:var(--primary); margin-top:0;">Parte 3: Provisão Emocional</h2>
+                <div id="questions-3"></div>
+                <div class="nav-buttons">
+                    <button type="button" class="btn btn-outline" onclick="prevStep(3)">🡠 Voltar</button>
+                    <button type="submit" class="btn" style="background:#10B981;">Finalizar e Gerar Diagnóstico ✓</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div id="results" class="card" style="display:none;">
+        <h2 style="text-align: center; color:var(--primary); margin-top:0;">Seu Raio-X de Provisão</h2>
+        <p style="text-align: center; color: var(--muted); margin-bottom:30px;">O objetivo aqui não é condenação, mas direção. Deus te chama para assumir a responsabilidade hoje. Veja onde você está forte e onde precisa agir rápido.</p>
+        <div id="results-content"></div>
+        <button onclick="window.print()" class="btn btn-outline" style="width:100%; margin-top: 20px;">Imprimir / Salvar PDF</button>
+    </div>
 </div>
 
 <script type="module">
-    // 1. Importações do Firebase via CDN (Adicionadas as funções de Email e Phone)
+    // --- FIREBASE IMPORTS ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { 
-        getAuth, signInWithPopup, GoogleAuthProvider, 
-        createUserWithEmailAndPassword, signInWithEmailAndPassword,
-        RecaptchaVerifier, signInWithPhoneNumber 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-    // 2. Sua Configuração do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBbZCsaw9KihtVgNoYfUu2kGCmBGCaHcGs",
         authDomain: "rth2026-bc52c.firebaseapp.com",
         projectId: "rth2026-bc52c",
         storageBucket: "rth2026-bc52c.firebasestorage.app",
         messagingSenderId: "451439639853",
-        appId: "1:451439639853:web:66a9ecb595d04a9a8027a4",
-        measurementId: "G-FHKJJZSPNL"
+        appId: "1:451439639853:web:66a9ecb595d04a9a8027a4"
     };
 
-    // 3. Inicializar Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
     const auth = getAuth(app);
-
-    const googleProvider = new GoogleAuthProvider();
     let currentUser = null;
-    let confirmationResult = null; // Guarda o resultado do envio do SMS
+    let confirmationResult = null;
 
-    // ----- FUNÇÕES DE INTERFACE (UI) -----
-    window.toggleAuthForm = (formId) => {
-        document.getElementById('email-form').style.display = 'none';
-        document.getElementById('phone-form').style.display = 'none';
-        if(formId) document.getElementById(formId).style.display = 'block';
+    // --- LÓGICA DE DADOS DAS PERGUNTAS ---
+    const dbQuestions = {
+        bloco1: [
+            { id: 'f1', ctx: 'Você sofre um acidente leve e precisa ficar 15 dias em casa. Seu chefe percebe que a empresa funciona perfeitamente sem você e decide te demitir. Ou, seu negócio é atropelado pela concorrência porque você parou no tempo.', text: 'Encaro meu trabalho como um chamado honroso e continuo investindo no meu conhecimento profissional, sinalizando para Deus e para o mercado minha disposição em crescer e não me acomodar na preguiça?', ref: 'Provérbios 13:4' },
+            { id: 'f2', ctx: 'O telefone toca durante o jantar em família. É mais uma cobrança. Sua esposa abaixa a cabeça, envergonhada e tensa, e o clima de paz desaparece do seu lar.', text: 'Minha família vive livre do desconforto de dívidas destrutivas (banco, cartão rotativo, cheque especial, agiotas) e evito totalmente atalhos de "dinheiro fácil"?', ref: 'Provérbios 22:7' },
+            { id: 'f3', ctx: 'Você sofre um mal súbito. Sua esposa precisa pagar as contas, mas entra em desespero ao descobrir que não faz ideia de quanto entra, quanto sai, nem das dívidas da casa.', text: 'Minha esposa participa ativamente ou tem total consciência e acesso ao orçamento familiar (mensal e anual), conhecendo a exata realidade financeira da nossa casa?', ref: 'Gênesis 2:24' },
+            { id: 'f4', ctx: 'Uma crise global atinge sua área e você perde sua fonte de renda amanhã. O governo não vai ajudar. Em poucas semanas, a geladeira esvazia e o medo toma conta.', text: 'Possuo uma reserva de emergência construída capaz de sustentar o padrão de vida da minha família, sem depender de terceiros, por pelo menos 3 a 6 meses?', ref: 'Provérbios 21:20' },
+            { id: 'f5', ctx: 'De madrugada, seu filho tem uma urgência médica grave. O desespero bate porque não há de onde tirar recursos para agir.', text: 'Tenho um planejamento claro para imprevistos (um bom convênio de saúde ou fundo específico) e minha moradia possui seguro contra acidentes?', ref: '1 Timóteo 5:8' },
+            { id: 'f6', ctx: 'Um motorista embriagado cruza o sinal e destrói seu veículo. Além do bem, você fica inválido para o trabalho. A renda zera da noite para o dia.', text: 'Se possuo veículo (carro ou moto), ele está segurado? E principalmente: possuo Seguro de Vida (morte e invalidez) para que a perda da minha capacidade não afunde minha família?', ref: 'Eclesiastes 11:2' },
+            { id: 'f7', ctx: 'Você não volta para casa hoje; faleceu. Em meio ao luto, sua esposa tenta acessar o dinheiro para o funeral, mas as contas estão bloqueadas e ela não tem as senhas.', text: 'Se eu falecer hoje, minha esposa tem acesso fácil a senhas, contas bancárias, contratos e orientações claras para resolver os trâmites sem passar por humilhação?', ref: 'Provérbios 13:22' },
+            { id: 'f8', ctx: 'Os anos voaram. Você está idoso, sem força, e seus filhos estão começando a vida adulta tendo que tirar do pouco que têm para sustentar você.', text: 'Além da reserva, você investe seu dinheiro pensando no longo prazo, preparando um envelhecimento digno e construindo uma base de herança para seus filhos?', ref: '2 Coríntios 12:14' },
+            { id: 'f9', ctx: 'Você ganha bem, mas construiu um império apenas para si. Ao se encontrar com Deus, Ele pergunta: "A quem você alimentou com as sementes que Eu te dei?"', text: 'Sou fiel nos dízimos e uso parte da minha provisão para abençoar ativamente outras pessoas (viúvas, órfãos, necessitados) e investir no Reino de Deus?', ref: 'Malaquias 3:10 / Tiago 1:27' },
+            { id: 'f10', ctx: 'Você está deitado às 3 da manhã, ansioso. Trabalha feito um escravo do dinheiro, tentando resolver no próprio braço o que foge do controle.', text: 'Minha motivação é o amor (e não a ganância), e consigo dormir em paz convicto de que faço minha parte com excelência, mas quem verdadeiramente sustenta a casa é o Senhor?', ref: 'Salmos 127:2' },
+            { id: 'f11', ctx: 'Você sofre um infarto fatal aos 45 anos porque ignorou exames, comeu mal e foi sedentário. Sua família fica órfã porque você não cuidou da "máquina" que trabalha.', text: 'Tenho cuidado ativamente da minha saúde física (exames de rotina, exercícios regulares, alimentação e sono), compreendendo que não posso ser provedor se meu corpo falhar?', ref: '1 Coríntios 6:19-20' }
+        ],
+        bloco2: [
+            { id: 's1', ctx: 'Seus filhos crescem e abandonam a fé. Quando questionados, dizem: "Meu pai só se importava com minhas notas na escola, ele nunca falou de Jesus comigo."', text: 'Assumo ativamente a responsabilidade de ser o "pastor" da minha casa, não terceirizando a liderança espiritual para a minha esposa ou apenas para a igreja?', ref: 'Efésios 6:4' },
+            { id: 's2', ctx: 'Uma crise atinge sua casa. Sua esposa busca um porto seguro espiritual, mas você está seco porque não abre a Bíblia há meses.', text: 'Promovo e conduzo momentos regulares de oração e devocional (leitura da Bíblia) em casa com minha família?', ref: 'Deuteronômio 6:6-7' },
+            { id: 's3', ctx: 'Seu filho desrespeita a mãe com palavrões. Ao ser corrigido, ele rebate: "Mas pai, você faz a mesma coisa."', text: 'Minhas atitudes diárias, meu linguajar e meu comportamento refletem os valores de Cristo, servindo de modelo de integridade para minha casa?', ref: 'Tito 2:7' },
+            { id: 's4', ctx: 'Domingo de manhã. Você prefere dormir mais ou trabalhar. Sua família vai à igreja sozinha. Com o tempo, eles também param de ir.', text: 'Priorizo a congregação, garantindo que minha família frequente a igreja regularmente e não permitindo que o trabalho seja desculpa para o afastamento?', ref: 'Hebreus 10:25' },
+            { id: 's5', ctx: 'Você trabalha 7 dias por semana justificando que é para "prover". Mas sua alma está exausta, sua esposa solitária e não há alegria na casa.', text: 'Guardo o dia de descanso, reservando tempo na semana especificamente para a adoração a Deus e para o descanso físico com a família?', ref: 'Êxodo 20:8' },
+            { id: 's6', ctx: 'Uma decisão de mudança de emprego aparece. Você decide puramente pela lógica do salário. É um desastre. Você percebe que nunca orou sobre isso.', text: 'Quando minha família precisa tomar decisões cruciais, minha primeira atitude é buscar a direção de Deus de joelhos junto com minha esposa?', ref: 'Provérbios 3:5-6' },
+            { id: 's7', ctx: 'Seu filho está sofrendo pressão e ataques espirituais pesados. Você não sabe, porque nunca ora de forma específica pelas lutas de cada um da casa.', text: 'Oro especificamente e diariamente pelas necessidades, fraquezas e lutas espirituais da minha esposa e dos meus filhos?', ref: 'Jó 1:5' },
+            { id: 's8', ctx: 'Seu filho entra na melhor faculdade, mas perde a alma para o secularismo, e você celebrou mais a aprovação acadêmica do que o batismo dele.', text: 'Ensino e demonstro aos meus filhos que buscar o Reino de Deus é infinitamente mais importante do que o sucesso acadêmico ou financeiro?', ref: 'Mateus 6:33' },
+            { id: 's9', ctx: 'A economia do país afunda. Você tem ataques de pânico e projeta pavor dentro de casa, agindo como se Deus não existisse.', text: 'Confio ativamente que Deus é o meu Jeová-Jiré, combatendo a ansiedade e o medo do futuro com a fé na Sua fidelidade?', ref: 'Filipenses 4:6-7' },
+            { id: 's10', ctx: 'Seu filho tem dificuldade de crer que Deus é um Pai amoroso porque o pai terreno dele é distante, duro e de amor condicional ao desempenho.', text: 'A visão que meus filhos têm de mim como pai terreno os ajuda a compreender e confiar no amor, na graça e na provisão de Deus Pai?', ref: 'Salmos 103:13' }
+        ],
+        bloco3: [
+            { id: 'e1', ctx: 'Você abre a porta de casa. Imediatamente todos ficam quietos e pisando em ovos porque sabem que "o pai chegou estressado do trabalho".', text: 'Estabeleço limites firmes no trabalho para não chegar em casa diariamente esgotado, irritado e sem energia emocional para interagir?', ref: 'Colossenses 3:19' },
+            { id: 'e2', ctx: 'Você compra um videogame caro para compensar a ausência na apresentação escolar. Anos depois, ele não lembra do jogo, só lembra que você não estava lá.', text: 'Compreendo na prática que meu tempo, atenção e presença são muito mais valiosos para meus filhos do que presentes caros e coisas materiais?', ref: 'Provérbios 15:16' },
+            { id: 'e3', ctx: 'Sua esposa chora por um problema. Você tenta resolver tudo com frieza lógica, fazendo-a se sentir incompreendida. Ela para de se abrir com você.', text: 'Dedico tempo exclusivo para ouvir minha esposa, validando seus sentimentos com empatia, antes de tentar "consertar" o problema dela?', ref: '1 Pedro 3:7' },
+            { id: 'e4', ctx: 'Seu filho adolescente comete um erro grave. Em vez de pedir sua ajuda, ele esconde por terror das suas explosões de raiva.', text: 'Proporciono um ambiente seguro, onde minha família pode confessar falhas e medos sem sofrer com minhas explosões ou condenações?', ref: 'Colossenses 3:21' },
+            { id: 'e5', ctx: 'Você está no sofá, mas passou as últimas 2 horas rolando o celular. Seu filho pequeno desiste de tentar te mostrar um desenho.', text: 'Costumo desligar ou afastar as telas (celular, TV) para estar de "corpo e alma" 100% presente nos momentos de convivência familiar?', ref: 'Efésios 5:15-16' },
+            { id: 'e6', ctx: 'Você acha que é um marido excelente. Mas nunca perguntou a ela. Se ela respondesse com total honestidade hoje, a resposta te quebraria.', text: 'Tenho a coragem e a humildade de perguntar periodicamente à minha esposa e filhos onde estou falhando e o que precisam de mim?', ref: 'Provérbios 27:6' },
+            { id: 'e7', ctx: 'Você aceita o cargo que exige 60h semanais e muitas viagens. O dinheiro é ótimo, mas 5 anos depois o casamento acabou e os filhos são estranhos.', text: 'Estou disposto a recusar oportunidades de status ou dinheiro se elas forem destruir o tempo necessário de convivência e a saúde da família?', ref: 'Marcos 8:36' },
+            { id: 'e8', ctx: 'Sua esposa comete uma falha. Você guarda rancor, aplica o "tratamento de silêncio" por dias e congela a paz do ambiente.', text: 'Demonstro a graça do Evangelho, sendo rápido em pedir perdão quando erro e rápido em perdoar quando falham comigo?', ref: 'Efésios 4:32' },
+            { id: 'e9', ctx: 'Seus filhos têm tudo do bom e do melhor. Mas reclamam de tudo, não têm gratidão e te tratam como um caixa eletrônico. A affluenza os infectou.', text: 'Protejo meus filhos do materialismo e da ingratidão, ensinando-os o valor do trabalho e a não terem recompensas constantes sem esforço?', ref: 'Provérbios 22:6' },
+            { id: 'e10', ctx: 'Você está dando seu último suspiro no leito de morte. Seu chefe não está lá. Só sua família. O que eles dirão do seu legado?', text: 'Se meu tempo terminasse hoje, minha esposa e filhos teriam a convicção absoluta de que foram minha prioridade máxima terrena, acima da carreira?', ref: 'Salmos 39:4-5' }
+        ]
     };
 
-    function setUserLoggedIn(user) {
-        currentUser = user;
-        const ident = user.displayName || user.email || user.phoneNumber || "Irmão";
-        document.getElementById('email-form').style.display = 'none';
-        document.getElementById('phone-form').style.display = 'none';
-        
-        const userInfoDiv = document.getElementById('user-info');
-        userInfoDiv.innerHTML = `✅ Autenticado como: ${ident}`;
-        userInfoDiv.style.display = 'block';
-        alert(`Bem-vindo! Você está autenticado.`);
-    }
-
-    // ----- FUNÇÕES DE AUTENTICAÇÃO -----
-    
-    // Google
-    window.loginGoogle = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            setUserLoggedIn(result.user);
-        } catch (error) {
-            console.error(error);
-            alert("Erro no Google: " + error.message);
-        }
-    };
-
-    // E-mail e Senha (Login)
-    window.loginEmail = async () => {
-        const email = document.getElementById('emailInput').value;
-        const password = document.getElementById('passwordInput').value;
-        if(!email || !password) return alert("Preencha e-mail e senha.");
-        
-        try {
-            const result = await signInWithEmailAndPassword(auth, email, password);
-            setUserLoggedIn(result.user);
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao entrar. Verifique se a senha está correta ou crie uma conta. (" + error.message + ")");
-        }
-    };
-
-    // E-mail e Senha (Criar Conta)
-    window.registerEmail = async () => {
-        const email = document.getElementById('emailInput').value;
-        const password = document.getElementById('passwordInput').value;
-        if(!email || !password) return alert("Preencha e-mail e senha.");
-        
-        try {
-            const result = await createUserWithEmailAndPassword(auth, email, password);
-            setUserLoggedIn(result.user);
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao criar conta: " + error.message);
-        }
-    };
-
-    // Configurar o ReCAPTCHA invisível/visível para envio de SMS
-    function setupRecaptcha() {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'normal',
-                'callback': (response) => {
-                    // reCAPTCHA resolvido
-                }
-            });
-        }
-    }
-
-    // Celular (Enviar SMS)
-    window.sendSMS = async () => {
-        const phoneNumber = document.getElementById('phoneInput').value;
-        if(!phoneNumber.startsWith('+55')) {
-            return alert("Digite no formato +55 seguido do DDD e número.");
-        }
-
-        setupRecaptcha();
-        const appVerifier = window.recaptchaVerifier;
-
-        try {
-            confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-            document.getElementById('otp-section').style.display = 'block';
-            document.getElementById('btnSendSms').style.display = 'none';
-            alert("SMS enviado! Verifique seu celular.");
-        } catch (error) {
-            console.error(error);
-            alert("Erro ao enviar SMS: " + error.message);
-            // Reset reCAPTCHA para tentar novamente
-            if(window.recaptchaVerifier) window.recaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-        }
-    };
-
-    // Celular (Verificar Código)
-    window.verifyOTP = async () => {
-        const code = document.getElementById('otpInput').value;
-        if(!code) return alert("Digite o código recebido.");
-
-        try {
-            const result = await confirmationResult.confirm(code);
-            setUserLoggedIn(result.user);
-        } catch (error) {
-            console.error(error);
-            alert("Código incorreto ou expirado.");
-        }
-    };
-
-    // ----- LÓGICA DO FORMULÁRIO (SALVAR NO FIRESTORE) -----
-    
-    // Função auxiliar (mantida do seu código)
-    function getDiagnosticHTML(title, score, area) {
-        let percentage = (score / 20) * 100;
-        let statusClass, feedbackText;
-
-        if (score <= 10) {
-            statusClass = 'status-danger';
-            if (area === 'Finanças') feedbackText = '<strong>Alerta Vermelho:</strong> Sua família está altamente vulnerável. A falta de provisão e segurança (como reservas ou seguro de vida) e o excesso de dívidas podem destruir a paz do seu lar se uma crise chegar. Comece imediatamente a cortar gastos, criar um fundo de emergência e avaliar opções de seguro.';
-            if (area === 'Espiritual') feedbackText = '<strong>Alerta Vermelho:</strong> Você tem terceirizado seu sacerdócio. Sua família precisa ver você buscando a Deus. Comece hoje: chame sua esposa para orar antes de dormir, leia um versículo com seus filhos. Assuma a liderança espiritual do seu lar.';
-            if (area === 'Emocional') feedbackText = '<strong>Alerta Vermelho:</strong> Seu lar pode estar se tornando um campo minado em vez de um refúgio. É urgente buscar domínio próprio (fruto do Espírito), aprender a ouvir mais e explodir menos. Sua esposa e filhos precisam do seu afeto, não apenas do seu dinheiro.';
-        } else if (score <= 16) {
-            statusClass = 'status-warning';
-            if (area === 'Finanças') feedbackText = '<strong>Atenção:</strong> Você tem noção da sua responsabilidade, mas ainda há brechas de segurança. Talvez falte aumentar a reserva de emergência ou formalizar o seguro/sucessão. Imprevistos graves ainda podem balançar sua estrutura. Avance para a blindagem total da família.';
-            if (area === 'Espiritual') feedbackText = '<strong>Atenção:</strong> Você está no caminho, mas falta constância. A vida espiritual da sua casa não pode depender do seu humor ou do tempo que sobra. Torne o devocional e a oração em família um hábito inegociável na rotina.';
-            if (area === 'Emocional') feedbackText = '<strong>Atenção:</strong> Você se esforça, mas as pressões externas muitas vezes roubam sua paciência ou presença. Lembre-se: qualidade de tempo requer foco. Desligue as telas e olhe nos olhos. Fortaleça a escuta empática com sua esposa.';
-        } else {
-            statusClass = 'status-success';
-            if (area === 'Finanças') feedbackText = '<strong>Qualificado:</strong> Excelente! Você está cumprindo seu papel de prover segurança e blindagem para os seus. Mantenha a vigilância, fuja da ganância e ensine esses princípios de mordomia cristã a outros homens.';
-            if (area === 'Espiritual') feedbackText = '<strong>Qualificado:</strong> Glória a Deus. Você tem assumido seu manto de sacerdote. Continue governando bem a sua casa e discipulando sua família nos caminhos do Senhor. Seu legado espiritual está sendo construído.';
-            if (area === 'Emocional') feedbackText = '<strong>Qualificado:</strong> Parabéns. Você é um porto seguro para sua casa. Seu domínio próprio e empatia geram um ambiente de paz e confiança. Continue amando sua esposa como Cristo amou a igreja.';
-        }
-
-        return `
-            <div class="result-area ${statusClass}">
-                <div class="result-title">${title}: ${score}/20 Pontos</div>
-                <div class="score-bar">
-                    <div class="score-fill" style="width: ${percentage}%;"></div>
+    // --- RENDERIZAR INTERFACE ---
+    function renderQuestions(containerId, questionsArr) {
+        const container = document.getElementById(containerId);
+        let html = '';
+        questionsArr.forEach((q, index) => {
+            html += `
+                <div class="question-box">
+                    <div class="scenario"><strong>Contexto:</strong> ${q.ctx}</div>
+                    <div class="ask">${index + 1}. ${q.text}</div>
+                    <div class="verse">${q.ref}</div>
+                    <div class="options-grid">
+                        <label class="option-label" onclick="selectOption(this, '${q.id}', 2, 'sim')">
+                            <input type="radio" name="${q.id}" value="2" required> Sim
+                        </label>
+                        <label class="option-label" onclick="selectOption(this, '${q.id}', 1, 'parcial')">
+                            <input type="radio" name="${q.id}" value="1"> Atendo Parcialmente
+                        </label>
+                        <label class="option-label" onclick="selectOption(this, '${q.id}', 0, 'nao')">
+                            <input type="radio" name="${q.id}" value="0"> Não
+                        </label>
+                        <label class="option-label" onclick="selectOption(this, '${q.id}', 'NA', 'na')">
+                            <input type="radio" name="${q.id}" value="NA"> N/A (Não se aplica)
+                        </label>
+                    </div>
                 </div>
-                <p>${feedbackText}</p>
-            </div>
-        `;
+            `;
+        });
+        container.innerHTML = html;
     }
 
-    document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
+    renderQuestions('questions-1', dbQuestions.bloco1);
+    renderQuestions('questions-2', dbQuestions.bloco2);
+    renderQuestions('questions-3', dbQuestions.bloco3);
 
-        // Verificação obrigatória de login
-        if (!currentUser) {
-            alert("Por favor, faça login (usando Google, E-mail ou Celular) na área de Identificação antes de gerar seu diagnóstico.");
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Controle visual dos Radios
+    window.selectOption = function(labelEl, name, val, typeClass) {
+        const labels = document.querySelectorAll(`input[name="${name}"]`);
+        labels.forEach(input => {
+            input.parentElement.classList.remove('checked-sim', 'checked-parcial', 'checked-nao', 'checked-na');
+        });
+        labelEl.classList.add(`checked-${typeClass}`);
+        labelEl.querySelector('input').checked = true;
+    }
+
+    // --- WIZARD E VALIDAÇÃO ---
+    window.nextStep = function(current) {
+        // Validar se todas as perguntas do bloco foram respondidas
+        const inputs = document.getElementById(`step-${current}`).querySelectorAll('input[type="radio"]');
+        const names = new Set();
+        inputs.forEach(i => names.add(i.name));
+        
+        let answered = 0;
+        names.forEach(name => {
+            if(document.querySelector(`input[name="${name}"]:checked`)) answered++;
+        });
+
+        if(answered < names.size) {
+            alert("Por favor, responda a todas as perguntas desta tela para prosseguir.");
             return;
         }
 
+        document.getElementById(`step-${current}`).classList.remove('active');
+        document.getElementById(`step-${current + 1}`).classList.add('active');
+        document.getElementById('progress-fill').style.width = (current * 33) + '%';
+        window.scrollTo(0, 0);
+    }
+
+    window.prevStep = function(current) {
+        document.getElementById(`step-${current}`).classList.remove('active');
+        document.getElementById(`step-${current - 1}`).classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    // --- LÓGICA DE CÁLCULO E FEEDBACK ---
+    document.getElementById('assessmentForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Verifica bloco 3
+        const inputs = document.getElementById(`step-3`).querySelectorAll('input[type="radio"]');
+        const names = new Set();
+        inputs.forEach(i => names.add(i.name));
+        let answered = 0;
+        names.forEach(name => { if(document.querySelector(`input[name="${name}"]:checked`)) answered++; });
+        if(answered < names.size) return alert("Por favor, responda todas as perguntas finais.");
+
+        document.getElementById('progress-fill').style.width = '100%';
+
         const formData = new FormData(e.target);
-        let scores = { financeiro: 0, espiritual: 0, emocional: 0 };
-        let respostas = {};
+        let results = {
+            f: { score: 0, max: 0, name: 'Provisão Financeira/Física', plan: [
+                "Agende imediatamente um check-up médico completo.",
+                "Liste todas as dívidas e crie um plano de quitação agressivo.",
+                "Sente com sua esposa nesta semana para abrir as contas e definir o orçamento juntos.",
+                "Faça uma cotação de Seguro de Vida nos próximos 5 dias.",
+                "Crie uma 'Pasta de Emergência' com senhas e apólices e mostre a ela onde fica."
+            ]},
+            s: { score: 0, max: 0, name: 'Provisão Espiritual', plan: [
+                "Ore com sua esposa hoje à noite antes de dormir. Apenas comece.",
+                "Defina 1 dia fixo na semana (ex: jantar de terça) para ler um texto bíblico curto com a família.",
+                "Assuma o compromisso de não faltar aos cultos de domingo por 1 mês seguido.",
+                "Comece uma lista de oração anotando 1 necessidade específica de cada filho.",
+                "Exerça confiança devolvendo o dízimo fielmente na próxima entrada financeira."
+            ]},
+            e: { score: 0, max: 0, name: 'Provisão Emocional', plan: [
+                "Implemente a regra: Celular em 'Modo Avião' ou fora de alcance durante o jantar.",
+                "Leve sua esposa para sair (só vocês dois) e limite-se a ouvi-la, sem tentar consertar os problemas.",
+                "Peça perdão especificamente por uma explosão de raiva recente que você cometeu em casa.",
+                "Marque na agenda um tempo individual de qualidade com cada filho neste final de semana.",
+                "Pergunte à sua esposa hoje: 'O que eu posso fazer para você se sentir mais amada e segura?'"
+            ]}
+        };
 
-        for (let i = 1; i <= 4; i++) {
-            respostas['f'+i] = parseInt(formData.get('f'+i));
-            respostas['s'+i] = parseInt(formData.get('s'+i));
-            respostas['e'+i] = parseInt(formData.get('e'+i));
+        let dbRespostas = {};
 
-            scores.financeiro += respostas['f'+i];
-            scores.espiritual += respostas['s'+i];
-            scores.emocional += respostas['e'+i];
+        for (let [key, value] of formData.entries()) {
+            dbRespostas[key] = value;
+            const area = key.charAt(0); // f, s ou e
+            if(value !== 'NA') {
+                results[area].score += parseInt(value);
+                results[area].max += 2; // Cada questão vale 2
+            }
         }
 
-        document.getElementById('financialResult').innerHTML = getDiagnosticHTML('Provisão Financeira', scores.financeiro, 'Finanças');
-        document.getElementById('spiritualResult').innerHTML = getDiagnosticHTML('Provisão Espiritual', scores.espiritual, 'Espiritual');
-        document.getElementById('emotionalResult').innerHTML = getDiagnosticHTML('Provisão Emocional', scores.emocional, 'Emocional');
-        document.getElementById('results').style.display = 'block';
-        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
-
-        const btnSubmit = document.querySelector('.btn-submit');
-        const textoOriginal = btnSubmit.innerText;
-        btnSubmit.innerText = "Salvando no banco de dados...";
-        btnSubmit.disabled = true;
-
-        try {
-            const docRef = await addDoc(collection(db, "diagnosticos"), {
-                usuarioId: currentUser.uid,
-                usuarioNome: currentUser.displayName || "N/A",
-                usuarioEmail: currentUser.email || "N/A",
-                usuarioTelefone: currentUser.phoneNumber || "N/A",
-                scores: scores,
-                respostas: respostas,
-                dataEnvio: serverTimestamp(),
-                projeto: "RTH2026 - Semana 10"
-            });
+        // Renderizar o Resultado
+        let htmlResult = '';
+        for (let key in results) {
+            let res = results[key];
+            let pct = res.max > 0 ? Math.round((res.score / res.max) * 100) : 0;
+            let statusObj = getStatusInfo(pct);
             
-            console.log("Documento gravado no Firestore com ID: ", docRef.id);
-            alert("Seu diagnóstico foi gerado e salvo com sucesso!");
-        } catch (error) {
-            console.error("Erro ao adicionar documento: ", error);
-            alert("Erro ao salvar no banco. Verifique as regras de segurança no Firestore.");
-        } finally {
-            btnSubmit.innerText = textoOriginal;
-            btnSubmit.disabled = false;
+            let planList = res.plan.map(p => `<li>${p}</li>`).join('');
+
+            htmlResult += `
+                <div style="margin-bottom: 25px; border-left: 5px solid ${statusObj.color}; padding: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="font-size:1.2em; font-weight:bold; color:${statusObj.color}; margin-bottom:10px;">${res.name}: ${pct}% de Eficiência</div>
+                    <p style="margin-bottom: 10px;"><strong>Diagnóstico:</strong> ${statusObj.text}</p>
+                    <div class="action-plan">
+                        <strong>Plano de Ação Imediato:</strong>
+                        <ul>${planList}</ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        document.getElementById('results-content').innerHTML = htmlResult;
+        document.getElementById('assessment-container').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        window.scrollTo(0, 0);
+
+        // SALVAR NO FIREBASE
+        try {
+            await addDoc(collection(db, "diagnosticos"), {
+                usuarioId: currentUser ? currentUser.uid : "anonimo",
+                usuarioNome: currentUser ? currentUser.displayName : "N/A",
+                respostasBrutas: dbRespostas,
+                dataEnvio: serverTimestamp(),
+                projeto: "RTH2026"
+            });
+        } catch (e) {
+            console.error("Erro ao salvar:", e);
         }
     });
+
+    function getStatusInfo(pct) {
+        if(pct >= 80) return { color: '#10b981', text: 'Você tem governado bem o seu lar. Mantenha a vigilância, invista em melhoria contínua e ajude a discipular outros homens do grupo que estão com dificuldades.'};
+        if(pct >= 50) return { color: '#f59e0b', text: 'Você tem consciência do seu papel, mas está vulnerável. Há brechas que precisam ser fechadas urgentemente antes que uma crise exponha as estruturas da sua casa.'};
+        return { color: '#ef4444', text: 'Estado Crítico. Sua família está desprotegida e você está falhando gravemente no seu chamado. É hora de arrepender-se da inércia, abandonar as desculpas e agir como o homem de coragem que Deus te chamou para ser.'};
+    }
+
+    // --- FUNÇÕES DE AUTH DA TELA (Já configuradas) ---
+    window.toggleAuth = (id) => { document.getElementById('email-form').style.display = 'none'; document.getElementById('phone-form').style.display = 'none'; if(id) document.getElementById(id).style.display = 'block'; };
+    window.loginGoogle = async () => { try { const r = await signInWithPopup(auth, new GoogleAuthProvider()); setUser(r.user); } catch(e) { alert(e.message); } };
+    window.loginEmail = async () => { try { const r = await signInWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); setUser(r.user); } catch(e) { alert(e.message); } };
+    window.registerEmail = async () => { try { const r = await createUserWithEmailAndPassword(auth, document.getElementById('emailInput').value, document.getElementById('passwordInput').value); setUser(r.user); } catch(e) { alert(e.message); } };
+    window.sendSMS = async () => {
+        if(!window.recaptchaVerifier) window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
+        try { confirmationResult = await signInWithPhoneNumber(auth, document.getElementById('phoneInput').value, window.recaptchaVerifier); document.getElementById('otp-section').style.display = 'block'; document.getElementById('btnSendSms').style.display = 'none'; } catch(e) { alert("Erro SMS: " + e.message); }
+    };
+    window.verifyOTP = async () => { try { const r = await confirmationResult.confirm(document.getElementById('otpInput').value); setUser(r.user); } catch(e) { alert("Código Inválido."); } };
+    
+    function setUser(user) {
+        currentUser = user;
+        document.getElementById('email-form').style.display = 'none';
+        document.getElementById('phone-form').style.display = 'none';
+        document.getElementById('user-info').innerText = "✅ Autenticado com Sucesso!";
+        document.getElementById('user-info').style.display = 'block';
+        document.getElementById('btnStart').style.display = 'block';
+    }
+
+    window.startAssessment = () => {
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('assessment-container').style.display = 'block';
+        window.scrollTo(0,0);
+    }
 </script>
 
 </body>
