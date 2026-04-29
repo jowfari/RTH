@@ -10,7 +10,7 @@
     <script type="text/javascript">
         (function () {
             // Inicialização do EmailJS
-            emailjs.init("SUA_PUBLIC_KEY_AQUI");
+            emailjs.init("UP1Cy5SnuwY-EcF_f");
         })();
     </script>
 
@@ -652,8 +652,8 @@
             // ENVIAR VIA EMAILJS
             if (currentUser && currentUser.email) {
                 try {
-                    const templateParams = { user_email: currentUser.email, user_name: currentUser.displayName || "Irmão", message: textoEmail };
-                    await emailjs.send("SEU_SERVICE_ID_AQUI", "SEU_TEMPLATE_ID_AQUI", templateParams);
+                    const templateParams = { user_email: currentUser.email, user_name: currentUser.displayName || "Irmão", message: htmlResult };
+                    await emailjs.send("service_vteon3k", "template_dctrgeb", templateParams);
                 } catch (err) {
                     console.error("Falha ao enviar e-mail:", err);
                 }
