@@ -1,0 +1,90 @@
+[debug] [2026-04-28T02:33:48.334Z] ----------------------------------------------------------------------
+[debug] [2026-04-28T02:33:48.335Z] Command:       /Users/farizatto/.nvm/versions/node/v20.20.2/bin/node /Users/farizatto/.npm/_npx/ba4f1959e38407b5/node_modules/.bin/firebase init dataconnect --project rth2026-bc52c
+[debug] [2026-04-28T02:33:48.335Z] CLI Version:   15.15.0
+[debug] [2026-04-28T02:33:48.336Z] Platform:      darwin
+[debug] [2026-04-28T02:33:48.336Z] Node Version:  v20.20.2
+[debug] [2026-04-28T02:33:48.336Z] Time:          Mon Apr 27 2026 23:33:48 GMT-0300 (Brasilia Standard Time)
+[debug] [2026-04-28T02:33:48.336Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/farizatto/Documents/Antigravity/JOW
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-04-28T02:33:48.847Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-28T02:33:48.847Z] > authorizing via signed-in user (jowfari@gmail.com)
+[debug] [2026-04-28T02:33:48.848Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:48.848Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:48.849Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/rth2026-bc52c [none]
+[debug] [2026-04-28T02:33:50.716Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/rth2026-bc52c 200
+[debug] [2026-04-28T02:33:50.716Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/rth2026-bc52c {"projectId":"rth2026-bc52c","projectNumber":"451439639853","displayName":"RTH2026","name":"projects/rth2026-bc52c","resources":{"hostingSite":"rth2026-bc52c"},"state":"ACTIVE","etag":"1_b9f259e8-203f-41c1-9a75-98ec2072530b"}
+[info] i  Using project rth2026-bc52c (RTH2026) . 
+[info] 
+=== Dataconnect Setup
+[info] i  dataconnect: ensuring required API firebasedataconnect.googleapis.com is enabled... 
+[debug] [2026-04-28T02:33:50.729Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:50.729Z] Checked if tokens are valid: true, expires at: 1777345885016
+[info] i  dataconnect: ensuring required API sqladmin.googleapis.com is enabled... 
+[debug] [2026-04-28T02:33:50.729Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:50.729Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:50.729Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com [none]
+[debug] [2026-04-28T02:33:50.729Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com  x-goog-user-project=rth2026-bc52c
+[debug] [2026-04-28T02:33:50.731Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com [none]
+[debug] [2026-04-28T02:33:50.731Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com  x-goog-user-project=rth2026-bc52c
+[debug] [2026-04-28T02:33:52.378Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com 200
+[debug] [2026-04-28T02:33:52.379Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com [omitted]
+[warn] ⚠  dataconnect: missing required API firebasedataconnect.googleapis.com. Enabling now... 
+[debug] [2026-04-28T02:33:52.381Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:52.381Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:52.381Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com:enable [none]
+[debug] [2026-04-28T02:33:52.381Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com:enable  x-goog-user-project=rth2026-bc52c
+[debug] [2026-04-28T02:33:52.384Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com 200
+[debug] [2026-04-28T02:33:52.384Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com [omitted]
+[warn] ⚠  dataconnect: missing required API sqladmin.googleapis.com. Enabling now... 
+[debug] [2026-04-28T02:33:52.385Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:52.385Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:33:52.385Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com:enable [none]
+[debug] [2026-04-28T02:33:52.385Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com:enable  x-goog-user-project=rth2026-bc52c
+[debug] [2026-04-28T02:33:53.938Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com:enable 200
+[debug] [2026-04-28T02:33:53.938Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/firebasedataconnect.googleapis.com:enable [omitted]
+[debug] [2026-04-28T02:33:53.951Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com:enable 200
+[debug] [2026-04-28T02:33:53.951Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1/projects/rth2026-bc52c/services/sqladmin.googleapis.com:enable [omitted]
+[debug] [2026-04-28T02:34:03.961Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:03.962Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:03.962Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations/-/services [none]
+[debug] [2026-04-28T02:34:05.885Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations/-/services 200
+[debug] [2026-04-28T02:34:05.886Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations/-/services {}
+[debug] [2026-04-28T02:34:26.839Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:26.840Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:26.840Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/rth2026-bc52c/billingInfo [none]
+[debug] [2026-04-28T02:34:29.160Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/rth2026-bc52c/billingInfo 200
+[debug] [2026-04-28T02:34:29.160Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/rth2026-bc52c/billingInfo {"name":"projects/rth2026-bc52c/billingInfo","projectId":"rth2026-bc52c","billingAccountName":"","billingEnabled":false}
+[debug] [2026-04-28T02:34:29.162Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:29.163Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:29.164Z] >>> [apiv2][query] GET https://monitoring.googleapis.com/v3/projects/rth2026-bc52c/timeSeries/ filter=metric.type%3D%22serviceruntime.googleapis.com%2Fquota%2Fallocation%2Fusage%22+AND+metric.label.quota_metric+%3D+%22sqladmin.googleapis.com%2Ffdc_lifetime_free_trial_per_project%22&interval.endTime=2026-04-28T02%3A34%3A29.161Z&interval.startTime=2026-04-21T02%3A34%3A29.161Z
+[debug] [2026-04-28T02:34:31.765Z] <<< [apiv2][status] GET https://monitoring.googleapis.com/v3/projects/rth2026-bc52c/timeSeries/ 200
+[debug] [2026-04-28T02:34:31.765Z] <<< [apiv2][body] GET https://monitoring.googleapis.com/v3/projects/rth2026-bc52c/timeSeries/ {"unit":"1"}
+[info] ✔  dataconnect: CloudSQL no cost trial available! 
+[debug] [2026-04-28T02:34:31.767Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:31.767Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:31.768Z] >>> [apiv2][query] GET https://sqladmin.googleapis.com/v1/projects/rth2026-bc52c/instances [none]
+[debug] [2026-04-28T02:34:34.123Z] <<< [apiv2][status] GET https://sqladmin.googleapis.com/v1/projects/rth2026-bc52c/instances 200
+[debug] [2026-04-28T02:34:34.124Z] <<< [apiv2][body] GET https://sqladmin.googleapis.com/v1/projects/rth2026-bc52c/instances {}
+[debug] [2026-04-28T02:34:34.125Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:34.125Z] Checked if tokens are valid: true, expires at: 1777345885016
+[debug] [2026-04-28T02:34:34.125Z] >>> [apiv2][query] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations [none]
+[debug] [2026-04-28T02:34:36.658Z] <<< [apiv2][status] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations 200
+[debug] [2026-04-28T02:34:36.659Z] <<< [apiv2][body] GET https://firebasedataconnect.googleapis.com/v1/projects/rth2026-bc52c/locations {"locations":[{"name":"projects/rth2026-bc52c/locations/asia-east1","locationId":"asia-east1","displayName":"Taiwan"},{"name":"projects/rth2026-bc52c/locations/asia-east2","locationId":"asia-east2","displayName":"Hong Kong"},{"name":"projects/rth2026-bc52c/locations/asia-northeast1","locationId":"asia-northeast1","displayName":"Tokyo"},{"name":"projects/rth2026-bc52c/locations/asia-northeast2","locationId":"asia-northeast2","displayName":"Osaka"},{"name":"projects/rth2026-bc52c/locations/asia-northeast3","locationId":"asia-northeast3","displayName":"Seoul"},{"name":"projects/rth2026-bc52c/locations/asia-south1","locationId":"asia-south1","displayName":"Mumbai"},{"name":"projects/rth2026-bc52c/locations/asia-southeast1","locationId":"asia-southeast1","displayName":"Singapore"},{"name":"projects/rth2026-bc52c/locations/asia-southeast2","locationId":"asia-southeast2","displayName":"Jakarta"},{"name":"projects/rth2026-bc52c/locations/australia-southeast1","locationId":"australia-southeast1","displayName":"Sydney"},{"name":"projects/rth2026-bc52c/locations/australia-southeast2","locationId":"australia-southeast2","displayName":"Melbourne"},{"name":"projects/rth2026-bc52c/locations/europe-central2","locationId":"europe-central2","displayName":"Warsaw"},{"name":"projects/rth2026-bc52c/locations/europe-north1","locationId":"europe-north1","displayName":"Finland"},{"name":"projects/rth2026-bc52c/locations/europe-southwest1","locationId":"europe-southwest1","displayName":"Madrid"},{"name":"projects/rth2026-bc52c/locations/europe-west1","locationId":"europe-west1","displayName":"Belgium"},{"name":"projects/rth2026-bc52c/locations/europe-west2","locationId":"europe-west2","displayName":"London"},{"name":"projects/rth2026-bc52c/locations/europe-west3","locationId":"europe-west3","displayName":"Frankfurt"},{"name":"projects/rth2026-bc52c/locations/europe-west4","locationId":"europe-west4","displayName":"Netherlands"},{"name":"projects/rth2026-bc52c/locations/europe-west6","locationId":"europe-west6","displayName":"Zurich"},{"name":"projects/rth2026-bc52c/locations/europe-west8","locationId":"europe-west8","displayName":"Milan"},{"name":"projects/rth2026-bc52c/locations/europe-west9","locationId":"europe-west9","displayName":"Paris"},{"name":"projects/rth2026-bc52c/locations/me-west1","locationId":"me-west1","displayName":"Tel Aviv"},{"name":"projects/rth2026-bc52c/locations/northamerica-northeast1","locationId":"northamerica-northeast1","displayName":"Montréal"},{"name":"projects/rth2026-bc52c/locations/northamerica-northeast2","locationId":"northamerica-northeast2","displayName":"Toronto"},{"name":"projects/rth2026-bc52c/locations/southamerica-east1","locationId":"southamerica-east1","displayName":"São Paulo"},{"name":"projects/rth2026-bc52c/locations/southamerica-west1","locationId":"southamerica-west1","displayName":"Santiago"},{"name":"projects/rth2026-bc52c/locations/us-central1","locationId":"us-central1","displayName":"Iowa"},{"name":"projects/rth2026-bc52c/locations/us-east1","locationId":"us-east1","displayName":"South Carolina"},{"name":"projects/rth2026-bc52c/locations/us-east4","locationId":"us-east4","displayName":"Northern Virginia"},{"name":"projects/rth2026-bc52c/locations/us-south1","locationId":"us-south1","displayName":"Dallas"},{"name":"projects/rth2026-bc52c/locations/us-west1","locationId":"us-west1","displayName":"Oregon"},{"name":"projects/rth2026-bc52c/locations/us-west2","locationId":"us-west2","displayName":"Los Angeles"},{"name":"projects/rth2026-bc52c/locations/us-west3","locationId":"us-west3","displayName":"Salt Lake City"},{"name":"projects/rth2026-bc52c/locations/us-west4","locationId":"us-west4","displayName":"Las Vegas"}]}
+[warn] ⚠  dataconnect: Cannot detect an existing app in the current directory. 
