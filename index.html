@@ -40,8 +40,10 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 95%;
+            width: 100%;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         header {
@@ -269,6 +271,14 @@
         }
 
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
             .options-grid {
                 grid-template-columns: 1fr;
             }
