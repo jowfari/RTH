@@ -547,35 +547,32 @@
             // Estrutura para receber as piores notas e gerar o plano
             let results = {
                 f: {
-                    score: 0, max: 0, name: 'Provisão Financeira/Física', badAnswers: [],
-                    fallback: ["Mantenha a revisão periódica do seu orçamento.", "Continue se capacitando profissionalmente.", "Não deixe de cuidar da saúde com exames anuais.", "Revise seus investimentos e reservas anualmente.", "Mantenha o padrão de generosidade no Reino."]
+                    score: 0, max: 0, name: 'Provisão Financeira/Física', allAnswers: []
                 },
                 s: {
-                    score: 0, max: 0, name: 'Provisão Espiritual', badAnswers: [],
-                    fallback: ["Mantenha o ritmo de leitura bíblica diária.", "Continue pastoreando sua esposa com amor.", "Ore para que seu testemunho alcance outras famílias.", "Continue priorizando os cultos dominicais.", "Discipule outros homens mais jovens no grupo."]
+                    score: 0, max: 0, name: 'Provisão Espiritual', allAnswers: []
                 },
                 e: {
-                    score: 0, max: 0, name: 'Provisão Emocional', badAnswers: [],
-                    fallback: ["Continue blindando seu casamento contra as demandas do trabalho.", "Planeje momentos surpresas de lazer para a família.", "Mantenha a prática do diálogo aberto e sem julgamentos.", "Continue sendo um porto seguro nos dias difíceis.", "Celebre as pequenas vitórias do dia a dia com sua família."]
+                    score: 0, max: 0, name: 'Provisão Emocional', allAnswers: []
                 }
             };
 
             let dbRespostas = {};
+            const allQuestions = [...dbQuestions.bloco1, ...dbQuestions.bloco2, ...dbQuestions.bloco3];
 
             // Avaliação de cada resposta
             for (let [key, value] of formData.entries()) {
                 dbRespostas[key] = value;
                 const area = key.charAt(0);
 
-                if (value !== 'NA') {
+                if (value !== 'NA' && results[area]) {
                     const numVal = parseInt(value);
                     results[area].score += numVal;
                     results[area].max += 2;
 
-                    // Se o usuário tirou 0 ou 1, a pergunta entra na fila de correção
-                    if (numVal < 2) {
-                        const qObj = allQuestions.find(q => q.id === key);
-                        results[area].badAnswers.push({ val: numVal, plan: qObj.actionPlan });
+                    const qObj = allQuestions.find(q => q.id === key);
+                    if (qObj) {
+                        results[area].allAnswers.push({ val: numVal, plan: qObj.actionPlan, ctx: qObj.ctx, text: qObj.text });
                     }
                 }
             }
@@ -583,43 +580,55 @@
             let htmlResult = '';
             let textoEmail = `Olá! Segue o resultado do seu Diagnóstico de Provisão Integral:\n\n`;
 
-            // Montagem do Plano de Ação Top 5 para cada área
+            // Montagem do Aconselhamento Específico para cada área
             for (let key in results) {
                 let res = results[key];
                 let pct = res.max > 0 ? Math.round((res.score / res.max) * 100) : 0;
                 let statusObj = getStatusInfo(pct);
 
-                // Ordena para que os 0s (Não) venham antes dos 1s (Parcial)
-                res.badAnswers.sort((a, b) => a.val - b.val);
+                let planListHtml = res.allAnswers.map((a, i) => {
+                    let prefix, text, color;
+                    if (a.val === 2) {
+                        prefix = '✅ Mantenha e vigie';
+                        text = 'Muito bem! Continue fortalecendo e protegendo sua família nesta área.';
+                        color = '#10b981';
+                    } else if (a.val === 1) {
+                        prefix = '⚠️ Precisa melhorar';
+                        text = a.plan;
+                        color = '#f59e0b';
+                    } else {
+                        prefix = '🚨 Ação Urgente';
+                        text = a.plan;
+                        color = '#ef4444';
+                    }
+                    return `
+                    <div style="margin-bottom:15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px;">
+                        <div style="font-size:0.9em; color:#6b7280; margin-bottom:5px;"><strong>Pergunta ${i+1}:</strong> ${a.text}</div>
+                        <div style="color:#333;"><strong style="color:${color}">${prefix}:</strong> ${text}</div>
+                    </div>`;
+                }).join('');
 
-                // Pega as 5 dicas mais urgentes baseadas nas falhas do usuário
-                let finalPlan = res.badAnswers.map(a => a.plan).slice(0, 5);
-
-                // Se o usuário for muito bem e não tiver 5 falhas, completa com conselhos de manutenção
-                let fallbackIndex = 0;
-                while (finalPlan.length < 5 && fallbackIndex < res.fallback.length) {
-                    finalPlan.push(res.fallback[fallbackIndex]);
-                    fallbackIndex++;
-                }
-
-                let planListHtml = finalPlan.map(p => `<li>${p}</li>`).join('');
-                let planListText = finalPlan.map(p => `- ${p}\n`).join('');
+                let planListText = res.allAnswers.map((a, i) => {
+                    if (a.val === 2) return `- Pergunta ${i+1} (${a.text}): Mantenha e vigie. Continue forte.\n`;
+                    if (a.val === 1) return `- Pergunta ${i+1} (${a.text}): Melhorar -> ${a.plan}\n`;
+                    return `- Pergunta ${i+1} (${a.text}): URGENTE -> ${a.plan}\n`;
+                }).join('');
 
                 htmlResult += `
                 <div style="margin-bottom: 25px; border-left: 5px solid ${statusObj.color}; padding: 15px; background: #fff; color: #111; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-radius: 8px;">
                     <div style="font-size:1.2em; font-weight:bold; color:${statusObj.color}; margin-bottom:10px;">${res.name}: ${pct}% de Eficiência</div>
-                    <p style="margin-bottom: 10px; color: #333;"><strong>Diagnóstico:</strong> ${statusObj.text}</p>
-                    <div class="action-plan" style="background: #f3f4f6; border-left: 4px solid ${statusObj.color}; color: #111;">
-                        <strong style="color: #000;">Plano de Ação Personalizado (Top 5 Prioridades):</strong>
-                        <ul style="margin-top: 10px; color: #333;">${planListHtml}</ul>
+                    <p style="margin-bottom: 15px; color: #333;"><strong>Diagnóstico Geral:</strong> ${statusObj.text}</p>
+                    <div class="action-plan" style="background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; color: #111;">
+                        <strong style="color: #000; display:block; margin-bottom:15px; font-size:1.1em;">Aconselhamento por Situação:</strong>
+                        ${planListHtml}
                     </div>
                 </div>
             `;
 
                 textoEmail += `--- ${res.name.toUpperCase()} ---\n`;
                 textoEmail += `Eficiência: ${pct}%\n`;
-                textoEmail += `Diagnóstico: ${statusObj.text}\n`;
-                textoEmail += `Plano de Ação (Prioridades):\n${planListText}\n\n`;
+                textoEmail += `Diagnóstico Geral: ${statusObj.text}\n`;
+                textoEmail += `Aconselhamento por Situação:\n${planListText}\n\n`;
             }
 
             textoEmail += `Lembre-se: Deus capacita o homem que assume a responsabilidade. Avante!`;
